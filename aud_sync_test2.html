@@ -283,8 +283,9 @@
                 sound.push(new Howl({
                     xhr: {
                         headers: {
-                            Referer: 'https://sekai.best/',
-                            Origin: 'https://sekai.best'
+                            Referer: AUDIO_SOURCE[i],
+                            Origin: 'https://storage.sekai.best',
+                            sec-fetch-site: 'same-origin'
                         },
                         withCredentials: true
                     },
