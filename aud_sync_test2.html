@@ -281,6 +281,12 @@
             for (let i = 0; i < AUDIO_SOURCE.length; i++) {
                 let stereo_sep = ((AUDIO_SOURCE.length / (i + 1)) * 2 - 1);
                 sound.push(new Howl({
+                    xhr: {
+                        headers: {
+                            Referer: 'https://sekai.best/',
+                            Origin: 'https://sekai.best'
+                        }
+                    },
                     src: [AUDIO_SOURCE[i]],
                     stereo: stereo_sep,
                     loop: false
