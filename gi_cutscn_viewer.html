@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <title>tst</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.00">
+        <meta name="robots" content="noindex,nofollow,noarchive">
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+        <script src="https://cdn.plyr.io/3.7.3/plyr.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.plyr.io/3.7.3/plyr.css" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link href="https://cdn.jsdelivr.net/gh/daydreamer-json/SomeFontRepo@main/somefontrepo.css" rel="stylesheet" type="text/css" media="all">
+        <style>
+            html, body {
+                color: #fff;
+                background: #000;
+                margin: 0;
+                line-height: 1;
+                width: 100vw;
+                height: 100vh;
+                font-family: 'A-OTF UD Shin Go Pro', system-ui;
+            }
+            .main2 {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+            #video, .plyr {
+                flex-grow: 1;
+                height: 100%;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main">
+            <div class="main2">
+                <p><span>File:</span><span>
+                    <select id="filePullDownMenu" name="videoName" required>
+                    </select>
+                </span><span id="audioTrackPullDownRow" hidden><br>
+                <span>Audio:</span><span>
+                        <select id="audioTrackPullDownMenu" name="audioTrackName" required>
+                        </select>
+                </span></span></p>
+                <video id="video" controls crossorigin>
+                    <source type="application/x-mpegURL">
+                </video>
+            </div>
+        </div>
+        <script>
+            const default_file = 'Cs_LQ1101502_ShenheBattle_Boy';
+            const default_hls_pl_type = 'normal';
+            const videoData_BaseURL = 'https://raw.githubusercontent.com/daydreamer-json/gi_cutscn/main/media/hls/master';
+            const defaultOptions = {};
+            document.addEventListener('DOMContentLoaded', () => {
+                loadDatabase();
+                var playerElement = document.getElementById('video');
+                var videoSrc = `${videoData_BaseURL}/${default_hls_pl_type}/${default_file}.m3u8`;
+                var hls = new Hls();
+                document.getElementById('filePullDownMenu').addEventListener('change', changeSrc);
+                document.getElementById('audioTrackPullDownMenu').addEventListener('change', changeAudioTrack);
+                hlsInitialize(videoSrc, playerElement);
+            })
+            function loadDatabase () {
+                let file_database_url = 'https://raw.githubusercontent.com/daydreamer-json/gi_cutscn/main/cutscn_list.json';
+                let file_database_req = new XMLHttpRequest();
+                file_database_req.open('GET', file_database_url);
+                file_database_req.responseType = 'json';
+                file_database_req.send();
+                file_database_req.onload = function () {
+                    const file_database = file_database_req.response;
+                    for (let i = 0; i < file_database.length; i++) {
+                        var temp_option = document.createElement('option');
+                        var temp_textNode = document.createTextNode(file_database[i]);
+                        temp_option.appendChild(temp_textNode);
+                        temp_option.setAttribute('value',file_database[i]);
+                        if (file_database[i] == default_file) {
+                            temp_option.setAttribute('selected',true);
+                        };
+                        document.getElementById('filePullDownMenu').appendChild(temp_option);
+                    };
+                };
+            }
+            function hlsInitialize (sourceURL, element) {
+                if (hls) {
+                    hls.detachMedia();
+                };
+                if (Hls.isSupported()) {
+                    var hls = new Hls();
+                    hls.loadSource(sourceURL);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                        const availableQualities = hls.levels.map((l) => l.height);
+                        availableQualities.unshift(0);
+                        defaultOptions.quality = {
+                            default: 0,
+                            options: availableQualities,
+                            forced: true,
+                            onChange: (e) => updateQuality(e)
+                        };
+                        defaultOptions.i18n = {
+                            qualityLabel: {
+                                0: 'Auto'
+                            }
+                        };
+                        hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+                            if (hls.autoLevelEnabled) {
+                                document.querySelector(".plyr__menu__container [data-plyr='quality'][value='0'] span").innerHTML = `Auto (${hls.levels[data.level].height}p)`;
+                            } else {
+                                document.querySelector(".plyr__menu__container [data-plyr='quality'][value='0'] span").innerHTML = `Auto`;
+                            }
+                        });
+                        const player = new Plyr(element, defaultOptions);
+                        loadAvailableAudioTracks();
+                        player.on('ready',function () {
+                            if (hls.audioTrack) {
+                                let audioTrackPullDownMenu = document.getElementById('audioTrackPullDownMenu');
+                                audioTrackPullDownMenu.getElementsByTagName('option')[hls.audioTrack].setAttribute('selected',true);
+                            };
+                        });
+                        
+                    });
+                    hls.attachMedia(element);
+                    window.hls = hls;
+                } else if (element.canPlayType('application/vnd.apple.mpegurl')) {
+                    element.getElementsByTagName('source')[0].src = sourceURL;
+                };
+            }
+            function updateQuality (newQuality) {
+                if (newQuality === 0) {
+                    window.hls.currentLevel = -1;
+                } else {
+                    window.hls.levels.forEach((level, levelIndex) => {
+                        if (level.height === newQuality) {
+                            console.log("Found quality match with " + newQuality);
+                            window.hls.currentLevel = levelIndex;
+                        }
+                    });
+                }
+            }
+            function changeSrc () {
+                let selectedFileName = document.getElementById('filePullDownMenu').value;
+                hlsInitialize(`${videoData_BaseURL}/${default_hls_pl_type}/${selectedFileName}.m3u8`, document.getElementById('video'));
+                var element = document.getElementById('video');
+                if (element.canPlayType('application/vnd.apple.mpegurl')) {
+                    element.remove();
+                    var temp_video = document.createElement('video');
+                    temp_video.setAttribute('id', 'video');
+                    temp_video.setAttribute('controls', true);
+                    temp_video.setAttribute('crossorigin', true);
+                    var temp_source = document.createElement('source');
+                    temp_source.setAttribute('type', 'application/x-mpegURL');
+                    temp_source.setAttribute('src', `${videoData_BaseURL}/${default_hls_pl_type}/${selectedFileName}.m3u8`);
+                    temp_video.appendChild(temp_source);
+                    var temp_main2 = document.getElementsByClassName('main2')[0];
+                    temp_main2.appendChild(temp_video);
+                }
+            }
+            function loadAvailableAudioTracks () {
+                while (document.getElementById('audioTrackPullDownMenu').firstChild) {
+                    document.getElementById('audioTrackPullDownMenu').removeChild(document.getElementById('audioTrackPullDownMenu').firstChild);
+                }
+                document.getElementById('audioTrackPullDownRow').removeAttribute('hidden');
+                let availableAudioTracks = {};
+                /*
+                availableAudioTracks.lang = hls.audioTracks.map((l) => l.lang);
+                availableAudioTracks.name = hls.audioTracks.map((l) => l.name);
+                */
+                availableAudioTracks.lang = ['zh', 'en', 'ja', 'ko'];
+                availableAudioTracks.name = ['Chinese', 'English', 'Japanese', 'Korean'];
+                for (let i = 0; i < availableAudioTracks.lang.length; i++) {
+                    var temp_option = document.createElement('option');
+                    var temp_textNode = document.createTextNode(`${availableAudioTracks.lang[i]} (${availableAudioTracks.name[i]})`);
+                    temp_option.appendChild(temp_textNode);
+                    temp_option.setAttribute('value',i);
+                    /*
+                    if (hls.audioTrack == i) {
+                        temp_option.setAttribute('selected',true);
+                    }
+                    */
+                    document.getElementById('audioTrackPullDownMenu').appendChild(temp_option);
+                };
+            }
+            function changeAudioTrack () {
+                let selectedAudioTrack = document.getElementById('audioTrackPullDownMenu').value;
+                if (hls) {
+                    hls.audioTrack = selectedAudioTrack;
+                }
+            }
+    </script>
+    </body>
+</html>
