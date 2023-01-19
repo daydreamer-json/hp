@@ -22,28 +22,36 @@
                 font-family: 'A-OTF UD Shin Go Pro', system-ui;
             }
             .main2 {
-                display: flex;
-                flex-direction: column;
+                display: block;
                 height: 100vh;
+                width: 100vw;
+            }
+            .mainUI {
+                display: block;
+                width: 100vw;
+                background: rgba(0,0,0,0.3);
+                z-index: 100;
             }
             .mainVideo {
-                flex-grow: 1;
-                height: 100%;
-                width: 100%;
+                height: 100vh;
+                width: 100vw;
+                z-index: 0;
             }
         </style>
     </head>
     <body>
         <div class="main">
             <div class="main2">
-                <p><span>File:</span><span>
-                    <select id="filePullDownMenu" name="videoName" required>
-                    </select>
-                </span><span id="audioTrackPullDownRow" hidden><br>
-                <span>Audio:</span><span>
+                <div class="mainUI">
+                    <p><span>File:</span><span>
+                        <select id="filePullDownMenu" name="videoName" required>
+                        </select>
+                    </span><span id="audioTrackPullDownRow" hidden><br>
+                    <span>Audio:</span><span>
                         <select id="audioTrackPullDownMenu" name="audioTrackName" required>
                         </select>
-                </span></span></p>
+                    </span></span></p>
+                </div>
                 <div class="mainVideo">
                     <video id="video" controls crossorigin>
                         <source type="application/x-mpegURL">
