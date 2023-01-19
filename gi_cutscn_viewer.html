@@ -26,7 +26,7 @@
                 flex-direction: column;
                 height: 100vh;
             }
-            #video, .plyr {
+            .mainVideo {
                 flex-grow: 1;
                 height: 100%;
                 width: 100%;
@@ -44,9 +44,11 @@
                         <select id="audioTrackPullDownMenu" name="audioTrackName" required>
                         </select>
                 </span></span></p>
-                <video id="video" controls crossorigin>
-                    <source type="application/x-mpegURL">
-                </video>
+                <div class="mainVideo">
+                    <video id="video" controls crossorigin>
+                        <source type="application/x-mpegURL">
+                    </video>
+                </div>
             </div>
         </div>
         <script>
