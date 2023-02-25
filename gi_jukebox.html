@@ -102,9 +102,15 @@
     document.getElementById('h2string1').textContent = atob(BASE_SETTINGS.base64var.h2string1);
   }
   function randomTrackSelector(db) {
-    let randomizedAlbumIndex = Math.floor(Math.random() * db.list.length);
-    let randomizedDiscIndex = Math.floor(Math.random() * db.list[randomizedAlbumIndex].discs.length);
-    let randomizedTrackIndex = Math.floor(Math.random() * db.list[randomizedAlbumIndex].discs[randomizedDiscIndex].tracks.length);
+    let array1 = new Uint32Array(1);
+    let array2 = new Uint32Array(1);
+    let array3 = new Uint32Array(1);
+    window.crypto.getRandomValues(array1);
+    window.crypto.getRandomValues(array2);
+    window.crypto.getRandomValues(array3);
+    let randomizedAlbumIndex = array1[0] % db.list.length;
+    let randomizedDiscIndex = array2[0] % db.list[randomizedAlbumIndex].discs.length;
+    let randomizedTrackIndex = array3[0] % db.list[randomizedAlbumIndex].discs[randomizedDiscIndex].tracks.length;
     return {
       albumIndex: randomizedAlbumIndex,
       discIndex: randomizedDiscIndex,
