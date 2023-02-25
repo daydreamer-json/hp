@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.00">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js" integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.plyr.io/3.7.3/plyr.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.3/plyr.css" />
@@ -175,8 +176,10 @@
   document.addEventListener('DOMContentLoaded', function() {
     display_deobfuscate();
     document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_init;
-    document.getElementById('h1string1').addEventListener('click', playAudio);
   });
+  window.onload = function () {
+    document.getElementById('h1string1').addEventListener('click', playAudio);
+  }
   </script>
 </body>
 </html>
