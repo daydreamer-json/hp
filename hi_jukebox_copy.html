@@ -63,6 +63,7 @@
     audioRootURL: 'https://raw.githubusercontent.com/daydreamer-json/discography_cdn_005/main/mhy/honkai',
     playStartButtonText_init_pc: 'CLICK TO PLAY',
     playStartButtonText_init_mobile: 'TAP TO PLAY',
+    playStartButtonText_loading: 'LOADING ...',
     playStartButtonText_playing: 'NOW PLAYING'
   };
   function detectMobileDevice() {
@@ -141,21 +142,24 @@
         var audioPlayer = new Howl ({
           src: [playAudioURLBuilder(FILE_DATABASE, randomTrackSelectorOutput)]
         });
+        window.audioPlayer = audioPlayer;
+        document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_loading;
         audioPlayer.once('load', function(){
           audioPlayer.play();
+          document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_playing;
+          console.log(`Now playing "${FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US']}"`);
+          console.log(`URL: ${audioPlayer._src}`);
+          if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none' && document.getElementById('trackInfo_copyright').style.display == 'none') {
+            document.getElementById('trackInfo_trackName').style.display = 'block';
+            document.getElementById('trackInfo_albumName').style.display = 'block';
+            document.getElementById('trackInfo_artistName').style.display = 'block';
+            document.getElementById('trackInfo_copyright').style.display = 'block';
+          }
+          document.getElementById('trackInfo_trackName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US'];
+          document.getElementById('trackInfo_albumName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumTitle;
+          document.getElementById('trackInfo_artistName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumArtist;
+          document.getElementById('trackInfo_copyright').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].copyright;
         });
-        document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_playing;
-        console.log(`Now playing "${FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US']}"`);
-        if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none' && document.getElementById('trackInfo_copyright').style.display == 'none') {
-          document.getElementById('trackInfo_trackName').style.display = 'block';
-          document.getElementById('trackInfo_albumName').style.display = 'block';
-          document.getElementById('trackInfo_artistName').style.display = 'block';
-          document.getElementById('trackInfo_copyright').style.display = 'block';
-        }
-        document.getElementById('trackInfo_trackName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US'];
-        document.getElementById('trackInfo_albumName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumTitle;
-        document.getElementById('trackInfo_artistName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumArtist;
-        document.getElementById('trackInfo_copyright').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].copyright;
       })
       .catch(error => {
         console.error(error);
