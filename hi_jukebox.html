@@ -52,6 +52,7 @@
       <h3 id='trackInfo_trackName' class='do-not-bold' style='display: none;'>&nbsp;</h3>
       <h4 id='trackInfo_albumName' class='do-not-bold' style='display: none;'>&nbsp;</h4>
       <h4 id='trackInfo_artistName' class='do-not-bold' style='display: none;'>&nbsp;</h4>
+      <p id='trackInfo_copyright' style='display: none;'>&nbsp;</p>
     </div>
   </div>
   <script>
@@ -155,14 +156,16 @@
         document.getElementById('audioPlayer').play();
         document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_playing;
         console.log(`Now playing "${FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US']}"`);
-        if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none') {
+        if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none' && document.getElementById('trackInfo_copyright').style.display == 'none') {
           document.getElementById('trackInfo_trackName').style.display = 'block';
           document.getElementById('trackInfo_albumName').style.display = 'block';
           document.getElementById('trackInfo_artistName').style.display = 'block';
+          document.getElementById('trackInfo_copyright').style.display = 'block';
         }
         document.getElementById('trackInfo_trackName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US'];
         document.getElementById('trackInfo_albumName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumTitle;
         document.getElementById('trackInfo_artistName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumArtist;
+        document.getElementById('trackInfo_copyright').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].copyright;
       })
       .catch(error => {
         console.error(error);
