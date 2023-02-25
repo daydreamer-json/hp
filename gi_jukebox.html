@@ -180,6 +180,14 @@
         document.getElementById('trackInfo_albumName').textContent = BASE_SETTINGS.trackInfoLabel_loading;
         document.getElementById('trackInfo_artistName').textContent = BASE_SETTINGS.trackInfoLabel_loading;
         document.getElementById('trackInfo_copyright').textContent = BASE_SETTINGS.trackInfoLabel_loading;
+        audioPlayer.on('loaderror', function(){
+          console.error('Audio "loaderror" has occured. Retrying ...');
+          playAudio();
+        });
+        audioPlayer.on('playerror', function(){
+          console.error('Audio "playerror" has occured. Retrying ...');
+          playAudio();
+        });
         audioPlayer.on('load', function(){
           audioPlayer.play();
           document.getElementById('h1string1').addEventListener('click', playAudio);
