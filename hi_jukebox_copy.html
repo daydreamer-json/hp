@@ -47,8 +47,6 @@
   <div id="main">
     <h2 id='h2string1' class='do-not-select do-not-bold'>&nbsp;</h1>
     <h1 id='h1string1' class='do-not-select do-not-bold'>&nbsp;</h1>
-    <audio id='audioPlayer' style='display: none;'>
-    </audio>
     <div id='trackInfo' class='do-not-select'>
       <h3 id='trackInfo_trackName' class='do-not-bold' style='display: none;'>&nbsp;</h3>
       <h4 id='trackInfo_albumName' class='do-not-bold' style='display: none;'>&nbsp;</h4>
@@ -139,23 +137,13 @@
         console.log('Database loaded successfully');
         const FILE_DATABASE = data;
         let deviceType = detectMobileDevice();
-        if (document.getElementById('audioPlayer').style.display != 'none') {
-          document.getElementById('audioPlayer').style.display = 'none';
-        };
-        if (!document.getElementById('audioPlayer').paused) {
-          document.getElementById('audioPlayer').pause();
-          document.getElementById('audioPlayer').currentTime = 0;
-        };
         let randomTrackSelectorOutput = randomTrackSelector(FILE_DATABASE);
-        let sourceElement_3974022A = document.createElement('source');
-        sourceElement_3974022A.src = playAudioURLBuilder(FILE_DATABASE, randomTrackSelectorOutput);
-        if (deviceType == 'pc') {
-          sourceElement_3974022A.type = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].availableFmts[0].mime;
-        } else if (deviceType == 'mobile') {
-          sourceElement_3974022A.type = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].availableFmts[FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].availableFmts.length - 1].mime;
-        };
-        document.getElementById('audioPlayer').appendChild(sourceElement_3974022A);
-        document.getElementById('audioPlayer').play();
+        var audioPlayer = new Howl ({
+          src: [playAudioURLBuilder(FILE_DATABASE, randomTrackSelectorOutput)]
+        });
+        audioPlayer.once('load', function(){
+          audioPlayer.play();
+        });
         document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_playing;
         console.log(`Now playing "${FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US']}"`);
         if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none' && document.getElementById('trackInfo_copyright').style.display == 'none') {
