@@ -196,6 +196,7 @@
             document.getElementById('trackInfo_artistName').style.display = 'block';
             document.getElementById('trackInfo_copyright').style.display = 'block';
             document.getElementById('cover_bg').style.display = 'block';
+            audioPlayer.once('end', playAudio);
           }
         });
       })
