@@ -132,6 +132,9 @@
     return buildedURL;
   }
   function playAudio() {
+    if (typeof audioPlayer !== 'undefined') {
+      audioPlayer.stop();
+    };
     fetch(`${BASE_SETTINGS.audioRootURL}/db.json`)
       .then(response => response.json())
       .then(data => {
@@ -139,12 +142,13 @@
         const FILE_DATABASE = data;
         let deviceType = detectMobileDevice();
         let randomTrackSelectorOutput = randomTrackSelector(FILE_DATABASE);
-        var audioPlayer = new Howl ({
-          src: [playAudioURLBuilder(FILE_DATABASE, randomTrackSelectorOutput)]
+        let audioPlayer = new Howl ({
+          src: [playAudioURLBuilder(FILE_DATABASE, randomTrackSelectorOutput)],
+          html5: true
         });
         window.audioPlayer = audioPlayer;
         document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_loading;
-        audioPlayer.once('load', function(){
+        audioPlayer.on('load', function(){
           audioPlayer.play();
           document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_playing;
           console.log(`Now playing "${FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US']}"`);
