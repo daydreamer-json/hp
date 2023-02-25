@@ -39,6 +39,20 @@
     white-space: normal;
     letter-spacing: -0.02em;
     text-shadow: 0 0 30px #cccccc;
+    z-index: 100;
+  }
+  #cover_bg_container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #cover_bg {
+    z-index: 95;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0.3;
+    object-fit: cover;
+    object-position: 50% 50%;
   }
   .do-not-select {
     user-select: none;
@@ -49,7 +63,10 @@
   </style>
 </head>
 <body>
-  <div id="main">
+  <div id='cover_bg_container'>
+    <img id='cover_bg' src='' style='display: none;'>
+  </div>
+  <div id='main'>
     <h2 id='h2string1' class='do-not-select do-not-bold'>&nbsp;</h1>
     <h1 id='h1string1' class='do-not-select do-not-bold'>&nbsp;</h1>
     <div id='trackInfo' class='do-not-select'>
@@ -168,16 +185,18 @@
           document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_playing;
           console.log(`Now playing "${FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US']}"`);
           console.log(`URL: ${audioPlayer._src}`);
-          if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none' && document.getElementById('trackInfo_copyright').style.display == 'none') {
-            document.getElementById('trackInfo_trackName').style.display = 'block';
-            document.getElementById('trackInfo_albumName').style.display = 'block';
-            document.getElementById('trackInfo_artistName').style.display = 'block';
-            document.getElementById('trackInfo_copyright').style.display = 'block';
-          }
           document.getElementById('trackInfo_trackName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].discs[randomTrackSelectorOutput.discIndex].tracks[randomTrackSelectorOutput.trackIndex].trackName['en-US'];
           document.getElementById('trackInfo_albumName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumTitle;
           document.getElementById('trackInfo_artistName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumArtist;
           document.getElementById('trackInfo_copyright').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].copyright;
+          document.getElementById('cover_bg').src = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].coverExtLink;
+          if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none' && document.getElementById('trackInfo_copyright').style.display == 'none' && document.getElementById('cover_bg').style.display == 'none') {
+            document.getElementById('trackInfo_trackName').style.display = 'block';
+            document.getElementById('trackInfo_albumName').style.display = 'block';
+            document.getElementById('trackInfo_artistName').style.display = 'block';
+            document.getElementById('trackInfo_copyright').style.display = 'block';
+            document.getElementById('cover_bg').style.display = 'block';
+          }
         });
       })
       .catch(error => {
