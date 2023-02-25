@@ -179,6 +179,10 @@
     } else if (deviceType == 'mobile') {
       document.getElementById('h1string1').textContent = BASE_SETTINGS.playStartButtonText_init_mobile;
     };
+    var audioPlayer = new Howl ({
+      src: ['https://archive.org/download/audio-silent-wavs-one-second-half-second-quarter-second/silent_quarter-second.mp3']
+    });
+    window.audioPlayer = audioPlayer;
   });
   window.onload = function () {
     document.getElementById('h1string1').addEventListener('click', playAudio);
