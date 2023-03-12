@@ -63,8 +63,8 @@
   </style>
 </head>
 <body>
-  <div id='cover_bg_container'>
-    <img id='cover_bg' src='' style='display: none;'>
+  <div id='cover_bg_container' class='do-not-select'>
+    <img id='cover_bg' src='' style='display: none;' class='do-not-select'>
   </div>
   <div id='main'>
     <h2 id='h2string1' class='do-not-select do-not-bold'>&nbsp;</h1>
@@ -102,9 +102,11 @@
     document.getElementById('h2string1').textContent = atob(BASE_SETTINGS.base64var.h2string1);
   }
   function randomTrackSelector(db) {
-    let randomizedAlbumIndex = Math.floor(Math.random() * db.list.length);
-    let randomizedDiscIndex = Math.floor(Math.random() * db.list[randomizedAlbumIndex].discs.length);
-    let randomizedTrackIndex = Math.floor(Math.random() * db.list[randomizedAlbumIndex].discs[randomizedDiscIndex].tracks.length);
+    let random32bitArray = new Uint32Array(3);
+    window.crypto.getRandomValues(random32bitArray);
+    let randomizedAlbumIndex = random32bitArray[0] % db.list.length;
+    let randomizedDiscIndex = random32bitArray[1] % db.list[randomizedAlbumIndex].discs.length;
+    let randomizedTrackIndex = random32bitArray[2] % db.list[randomizedAlbumIndex].discs[randomizedDiscIndex].tracks.length;
     return {
       albumIndex: randomizedAlbumIndex,
       discIndex: randomizedDiscIndex,
