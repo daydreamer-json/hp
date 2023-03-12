@@ -81,65 +81,77 @@
           logger(`charaIDは${charaID[i]}です: id=${i + 1}`);
         }
         document.getElementById("urllistbox").value = "";
-        for (let i = 0; i < audioFiles.length; i++) {
-          remote_file_head_test(audioFiles[i], i);
-        }
-        // 配列の要素数だけ繰り返す
-        for (let i = 0; i < audioFiles.length; i++) {
-          // Howlオブジェクトを作成して配列に追加
-          howls[i] = new Howl({
-            src: audioFiles[i], // 音声ファイルのパス
-            preload: true, // 読み込み完了まで待つかどうか
-            autoplay: false, // 自動再生するかどうか
-            loop: true, // ループ再生するかどうか
-          });
-          logger(`Howlオブジェクトを作成しました: id=${i}`);
-        }
-        // 全ての音声ファイルが読み込まれたら実行する関数を設定
-        var loadedCount = 0; // 読み込まれた音声ファイルの数
-        var onLoad = function () {
-          loadedCount++; // 読み込まれた数を増やす
-          logger(`音声ファイルがプリロードされました: id=${loadedCount - 1}`);
-          document.getElementById("urllistbox").value +=
-            audioFiles[loadedCount - 1].match(/([^\/?#]+)(?=[^\/]*$)/)[0] +
-            "\r\n";
-          if (loadedCount == audioFiles.length) {
-            // 全て読み込まれたら
-            howls[0].volume(okeVol);
-            logger(
-              `Howlオブジェクトのvolumeを変更しました: id=0, value=${okeVol}`
-            );
-            for (let j = 2; j <= 3; j++) {
-              howls[j].volume(charaVol2); // ボーカルの音源3つ（インデックス1から3）の音量を設定（追加したコード）
+        remote_file_head_test(audioFiles).then((statusList) => {
+          if (statusList.every((status) => status === 200)) {
+            for (let i = 0; i < statusList.length; i++) {
+              logger(`リモートファイルへHEADしました: id=${i}, status=${statusList[i]}`);
+            };
+            logger(`リモートファイルは正常です`);
+            // 配列の要素数だけ繰り返す
+            for (let i = 0; i < audioFiles.length; i++) {
+              // Howlオブジェクトを作成して配列に追加
+              howls[i] = new Howl({
+                src: audioFiles[i], // 音声ファイルのパス
+                preload: true, // 読み込み完了まで待つかどうか
+                autoplay: false, // 自動再生するかどうか
+                loop: true, // ループ再生するかどうか
+              });
+              logger(`Howlオブジェクトを作成しました: id=${i}`);
+            }
+            // 全ての音声ファイルが読み込まれたら実行する関数を設定
+            var loadedCount = 0; // 読み込まれた音声ファイルの数
+            var onLoad = function () {
+              loadedCount++; // 読み込まれた数を増やす
               logger(
-                `Howlオブジェクトのvolumeを変更しました: id=${j}, value=${charaVol2}`
+                `音声ファイルがプリロードされました: id=${loadedCount - 1}`
               );
-            }
-            howls[1].volume(charaVol1);
-            logger(
-              `Howlオブジェクトのvolumeを変更しました: id=1, value=${charaVol1}`
-            );
-            howls[2].stereo(0 - charaPan); // 特定のボーカルだけ左チャンネルに寄せる（追加したコード）
-            logger(
-              `Howlオブジェクトのstereoを変更しました: id=2, value=${
-                0 - charaPan
-              }`
-            );
-            howls[3].stereo(charaPan); // 特定のボーカルだけ右チャンネルに寄せる（追加したコード）
-            logger(
-              `Howlオブジェクトのstereoを変更しました: id=3, value=${charaPan}`
-            );
-            for (let j = 0; j < howls.length; j++) {
+              document.getElementById("urllistbox").value +=
+                audioFiles[loadedCount - 1].match(/([^\/?#]+)(?=[^\/]*$)/)[0] +
+                "\r\n";
+              if (loadedCount == audioFiles.length) {
+                // 全て読み込まれたら
+                howls[0].volume(okeVol);
+                logger(
+                  `Howlオブジェクトのvolumeを変更しました: id=0, value=${okeVol}`
+                );
+                for (let j = 2; j <= 3; j++) {
+                  howls[j].volume(charaVol2); // ボーカルの音源3つ（インデックス1から3）の音量を設定（追加したコード）
+                  logger(
+                    `Howlオブジェクトのvolumeを変更しました: id=${j}, value=${charaVol2}`
+                  );
+                }
+                howls[1].volume(charaVol1);
+                logger(
+                  `Howlオブジェクトのvolumeを変更しました: id=1, value=${charaVol1}`
+                );
+                howls[2].stereo(0 - charaPan); // 特定のボーカルだけ左チャンネルに寄せる（追加したコード）
+                logger(
+                  `Howlオブジェクトのstereoを変更しました: id=2, value=${
+                    0 - charaPan
+                  }`
+                );
+                howls[3].stereo(charaPan); // 特定のボーカルだけ右チャンネルに寄せる（追加したコード）
+                logger(
+                  `Howlオブジェクトのstereoを変更しました: id=3, value=${charaPan}`
+                );
+                for (let j = 0; j < howls.length; j++) {
+                  // 配列の要素数だけ繰り返す
+                  howls[j].play(); // 再生する（Howlオブジェクトは自動的に同期される）
+                  logger(`Howlオブジェクトを再生しました: id=${j}`);
+                }
+              }
+            };
+            for (let k = 0; k < howls.length; k++) {
               // 配列の要素数だけ繰り返す
-              howls[j].play(); // 再生する（Howlオブジェクトは自動的に同期される）
-              logger(`Howlオブジェクトを再生しました: id=${j}`);
+              howls[k].once("load", onLoad); // 読み込み完了時にonLoad関数を実行するように設定
             }
+          } else {
+            for (let i = 0; i < statusList.length; i++) {
+              logger(`リモートファイルへHEADしました: id=${i}, status=${statusList[i]}`);
+            }
+            logger(`リモートファイルの一部に問題があります`);
           }
-        };
-        for (let k = 0; k < howls.length; k++) {
-          // 配列の要素数だけ繰り返す
-          howls[k].once("load", onLoad); // 読み込み完了時にonLoad関数を実行するように設定
-        }
+        });
       }
       // 再生停止用の関数を定義（追加したコード）
       function stopAll() {
@@ -173,16 +185,12 @@
             return null;
           });
       }
-      function remote_file_head_test(url, id) {
-        fetch(url, { method: "HEAD" })
-          .then((response) => {
-            logger(
-              `リモートファイルへHEADしました: id=${id}, status=${response.status}`
-            );
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+      async function remote_file_head_test(audioFilesList) {
+        const promises = audioFilesList.map((url) =>
+          fetch(url, { method: "HEAD" })
+        );
+        const responses = await Promise.all(promises);
+        return responses.map((response) => response.status);
       }
     </script>
   </head>
@@ -237,8 +245,8 @@
       type="number"
       inputmode="decimal"
       required
-      min="0"
-      max="1"
+      min="0.0"
+      max="1.0"
       value="1"
     />
     <input
@@ -247,8 +255,8 @@
       type="number"
       inputmode="decimal"
       required
-      min="0"
-      max="1"
+      min="0.0"
+      max="1.0"
       value="0.8"
     />
     <input
@@ -257,8 +265,8 @@
       type="number"
       inputmode="decimal"
       required
-      min="0"
-      max="1"
+      min="0.0"
+      max="1.0"
       value="0.6"
     />
     <input
@@ -267,12 +275,14 @@
       type="number"
       inputmode="decimal"
       required
-      min="0"
-      max="1"
+      min="0.0"
+      max="1.0"
       value="0.35"
     />
     <br />
-    <textarea id="textbox" style="height: 400px" readonly>Logger出力はここに表示されます</textarea>
+    <textarea id="textbox" style="height: 400px" readonly>
+Logger出力はここに表示されます</textarea
+    >
     <br />
     <textarea id="urllistbox" style="height: 8em" readonly></textarea>
   </body>
