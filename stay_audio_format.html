@@ -1,0 +1,405 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.00" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <script
+      src="https://code.jquery.com/jquery-3.6.1.min.js"
+      integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/gh/daydreamer-json/SomeFontRepo@main/somefontrepo.css"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+    <style>
+      html,
+      body {
+        color: #fff;
+        background: #000;
+        margin: 0;
+        line-height: 1;
+        width: 100vw;
+        height: 100vh;
+        font-family: "A-OTF UD Shin Go Pro", system-ui;
+      }
+      textarea,
+      button {
+        color: #fff;
+        background: #000;
+        width: 100vw;
+        font-family: system-ui;
+        resize: none;
+      }
+      .inputbox {
+        color: #fff;
+        background: #000;
+        width: 20vw;
+        font-family: system-ui;
+      }
+    </style>
+  </head>
+  <body>
+    <button onclick="playSync()" style="font-size: 24px">同期再生</button>
+    <button onclick="stopAll()" style="display: none">停止</button>
+    <br />
+    <input
+      class="inputbox"
+      id="liveIDBox"
+      type="number"
+      inputmode="numeric"
+      required
+      min="1001"
+      max="9999"
+      value="1036"
+    />
+    <select id="codecSelectBox1" class="selectBox1" required>
+    </select>
+    <select id="rcSelectBox1" class="selectBox1" required>
+    </select>
+    <select id="bitrateSelectBox1" class="selectBox1" required>
+    </select>
+    <br />
+    <select id="codecSelectBox2" class="selectBox2" required>
+    </select>
+    <select id="rcSelectBox2" class="selectBox2" required>
+    </select>
+    <select id="bitrateSelectBox2" class="selectBox2" required>
+    </select>
+    <br />
+    <textarea id="textbox" style="height: 400px" readonly>
+Logger出力はここに表示されます</textarea
+    >
+    <br />
+    <textarea id="urllistbox" style="height: 8em" readonly></textarea>
+    <script>
+      const FORMAT_LIST_JSON = {
+        "codecList": [
+          {"id": "flac", "label": "FLAC", "ext": "flac"},
+          {"id": "mp3", "label": "MP3", "ext": "mp3"},
+          {"id": "aac_lc", "label": "AAC-LC", "ext": "m4a"},
+          {"id": "aac_he_v1", "label": "HE-AAC v1", "ext": "m4a"},
+          {"id": "aac_he_v2", "label": "HE-AAC v2", "ext": "m4a"},
+          {"id": "ogg", "label": "Vorbis", "ext": "ogg"},
+          {"id": "opus", "label": "Opus", "ext": "opus"}
+        ],
+        "flac": {
+          "rcList": [
+            {"id": "vbr", "label": "VBR", "type": "k"}
+          ],
+          "vbr": [1411]
+        },
+        "mp3": {
+          "rcList": [
+            {"id": "vbr", "label": "VBR", "type": "q"},
+            {"id": "abr", "label": "ABR", "type": "k"},
+            {"id": "cbr", "label": "CBR", "type": "k"}
+          ],
+          "vbr": [
+            9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+          ],
+          "abr": [
+            32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320
+          ],
+          "cbr": [
+            32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320
+          ]
+        },
+        "aac_lc": {
+          "rcList": [
+            {"id": "tvbr", "label": "VBR", "type": "q"},
+            {"id": "cvbr", "label": "CVBR", "type": "k"},
+            {"id": "abr", "label": "ABR", "type": "k"},
+            {"id": "cbr", "label": "CBR", "type": "k"},
+          ],
+          "tvbr": [
+            0, 9, 18, 27, 36, 45, 54, 64, 73, 82, 91, 100, 109, 118, 127
+          ],
+          "cvbr": [
+            64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ],
+          "abr": [
+            64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ],
+          "cbr": [
+            64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ]
+        },
+        "aac_he_v1": {
+          "rcList": [
+            {"id": "cvbr", "label": "CVBR", "type": "k"},
+            {"id": "abr", "label": "ABR", "type": "k"},
+            {"id": "cbr", "label": "CBR", "type": "k"}
+          ],
+          "cvbr": [
+            32, 40, 48, 56, 64, 80
+          ],
+          "abr": [
+            32, 40, 48, 56, 64, 80
+          ],
+          "cbr": [
+            32, 40, 48, 56, 64, 80
+          ]
+        },
+        "aac_he_v2": {
+          "rcList": [
+            {"id": "vbr", "label": "VBR", "type": "q"},
+            {"id": "cbr", "label": "CBR", "type": "k"}
+          ],
+          "vbr": [
+            1, 2, 3, 4, 5
+          ],
+          "cbr": [
+            8, 16, 24, 32, 40, 48, 56, 64, 80
+          ]
+        },
+        "ogg": {
+          "rcList": [
+            {"id": "vbr", "label": "VBR", "type": "q"},
+            {"id": "abr", "label": "ABR", "type": "k"},
+            {"id": "cbr", "label": "CBR", "type": "k"}
+          ],
+          "vbr": [
+            -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+          ],
+          "abr": [
+            32, 40, 48, 56, 64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ],
+          "cbr": [
+            32, 40, 48, 56, 64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ]
+        },
+        "opus": {
+          "rcList": [
+            {"id": "vbr", "label": "VBR", "type": "k"},
+            {"id": "cvbr", "label": "CVBR", "type": "k"},
+            {"id": "cbr", "label": "CBR", "type": "k"}
+          ],
+          "vbr": [
+            8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ],
+          "cvbr": [
+            8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ],
+          "cbr": [
+            8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 96, 112, 128, 144, 160, 192, 224, 256, 288, 320
+          ]
+        }
+      }
+      const DEFAULT_SELECTED = [
+        {
+          "codec": "flac",
+          "rc": "vbr",
+          "bitrate": 1411,
+        },
+        {
+          "codec": "mp3",
+          "rc": "abr",
+          "bitrate": 128,
+        }
+      ];
+      
+      function logger(text) {
+        document.getElementById("textbox").value += "\r\n" + text; // 新しい行に文字列を追加する
+      }
+      // 以下のスクリプトはBing(ChatGPT)が生成したものに追記したものです。
+      // プロンプト:
+      // ある曲のカラオケバージョンの音源と、3人分のボーカルの音源があります。つまり、4つの音声ファイルがあります。これらのファイルを完全に同期して同時再生するコードを、Howler.jsを使用した上でHTMLとJavaScriptで書いてください。
+
+      var howls = [];
+      // 同期再生用の関数を定義
+      function playSync() {
+        stopAll();
+        var liveID = document.getElementById("liveIDBox").value;
+        var charaID = [
+          document.getElementById("charaIDBox1").value,
+          document.getElementById("charaIDBox2").value,
+          document.getElementById("charaIDBox3").value,
+        ];
+        var okeVol = document.getElementById("okeVolBox").value;
+        var charaVol1 = document.getElementById("charaVolBox1").value;
+        var charaVol2 = document.getElementById("charaVolBox2").value;
+        var charaPan = document.getElementById("charaPanBox").value;
+        // 音声ファイルのパスを配列に格納
+        var audioFiles = [
+          `https://cdn.jsdelivr.net/gh/daydreamer-json/umm_assets@main/sound/l/${liveID}/snd_bgm_live_${liveID}_oke_02/snd_bgm_live_${liveID}_oke_02_1.m4a`,
+          `https://cdn.jsdelivr.net/gh/daydreamer-json/umm_assets@main/sound/l/${liveID}/snd_bgm_live_${liveID}_chara_${charaID[0]}_01/snd_bgm_live_${liveID}_chara_${charaID[0]}_01_1.m4a`,
+          `https://cdn.jsdelivr.net/gh/daydreamer-json/umm_assets@main/sound/l/${liveID}/snd_bgm_live_${liveID}_chara_${charaID[1]}_01/snd_bgm_live_${liveID}_chara_${charaID[1]}_01_1.m4a`,
+          `https://cdn.jsdelivr.net/gh/daydreamer-json/umm_assets@main/sound/l/${liveID}/snd_bgm_live_${liveID}_chara_${charaID[2]}_01/snd_bgm_live_${liveID}_chara_${charaID[2]}_01_1.m4a`,
+        ];
+        logger("playSync関数が呼び出されました");
+        logger(`liveIDは${liveID}です`);
+        // logger(`liveIDのtext_dataは${master_db_text_data_search(16, liveID).text}です`);
+        for (let i = 0; i < charaID.length; i++) {
+          logger(`charaIDは${charaID[i]}です: id=${i + 1}`);
+        }
+        document.getElementById("urllistbox").value = "";
+        remote_file_head_test(audioFiles).then((statusList) => {
+          if (statusList.every((status) => status === 200)) {
+            for (let i = 0; i < statusList.length; i++) {
+              logger(`リモートファイルへHEADしました: id=${i}, status=${statusList[i]}`);
+            };
+            logger(`リモートファイルは正常です`);
+            // 配列の要素数だけ繰り返す
+            for (let i = 0; i < audioFiles.length; i++) {
+              // Howlオブジェクトを作成して配列に追加
+              howls[i] = new Howl({
+                src: audioFiles[i], // 音声ファイルのパス
+                preload: true, // 読み込み完了まで待つかどうか
+                autoplay: false, // 自動再生するかどうか
+                loop: true, // ループ再生するかどうか
+              });
+              logger(`Howlオブジェクトを作成しました: id=${i}`);
+            }
+            // 全ての音声ファイルが読み込まれたら実行する関数を設定
+            var loadedCount = 0; // 読み込まれた音声ファイルの数
+            var onLoad = function () {
+              loadedCount++; // 読み込まれた数を増やす
+              logger(
+                `音声ファイルがプリロードされました: id=${loadedCount - 1}`
+              );
+              document.getElementById("urllistbox").value +=
+                audioFiles[loadedCount - 1].match(/([^\/?#]+)(?=[^\/]*$)/)[0] +
+                "\r\n";
+              if (loadedCount == audioFiles.length) {
+                // 全て読み込まれたら
+                howls[0].volume(okeVol);
+                logger(
+                  `Howlオブジェクトのvolumeを変更しました: id=0, value=${okeVol}`
+                );
+                for (let j = 2; j <= 3; j++) {
+                  howls[j].volume(charaVol2); // ボーカルの音源3つ（インデックス1から3）の音量を設定（追加したコード）
+                  logger(
+                    `Howlオブジェクトのvolumeを変更しました: id=${j}, value=${charaVol2}`
+                  );
+                }
+                howls[1].volume(charaVol1);
+                logger(
+                  `Howlオブジェクトのvolumeを変更しました: id=1, value=${charaVol1}`
+                );
+                howls[2].stereo(0 - charaPan); // 特定のボーカルだけ左チャンネルに寄せる（追加したコード）
+                logger(
+                  `Howlオブジェクトのstereoを変更しました: id=2, value=${
+                    0 - charaPan
+                  }`
+                );
+                howls[3].stereo(charaPan); // 特定のボーカルだけ右チャンネルに寄せる（追加したコード）
+                logger(
+                  `Howlオブジェクトのstereoを変更しました: id=3, value=${charaPan}`
+                );
+                for (let j = 0; j < howls.length; j++) {
+                  // 配列の要素数だけ繰り返す
+                  howls[j].play(); // 再生する（Howlオブジェクトは自動的に同期される）
+                  logger(`Howlオブジェクトを再生しました: id=${j}`);
+                }
+              }
+            };
+            for (let k = 0; k < howls.length; k++) {
+              // 配列の要素数だけ繰り返す
+              howls[k].once("load", onLoad); // 読み込み完了時にonLoad関数を実行するように設定
+            }
+          } else {
+            for (let i = 0; i < statusList.length; i++) {
+              logger(`リモートファイルへHEADしました: id=${i}, status=${statusList[i]}`);
+            }
+            logger(`リモートファイルの一部に問題があります`);
+          }
+        });
+      }
+      // 再生停止用の関数を定義（追加したコード）
+      function stopAll() {
+        for (var n = 0; n < howls.length; n++) {
+          // 配列の要素数だけ繰り返す
+          howls[n].stop(); // 停止する
+          howls[n].unload();
+        }
+        document.getElementById("textbox").value =
+          "Logger出力はここに表示されます";
+        logger(`stopAll関数が呼び出されました`);
+      }
+      function master_db_text_data_search(categoryNumber, idNumber) {
+        fetch(
+          "https://cdn.jsdelivr.net/gh/daydreamer-json/umm_master_db@main/json/text_data.json"
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            var master_db_text_data = data;
+            logger(`マスターデータベースを読み込みました`);
+            let categoryResult = master_db_text_data.filter(function (obj) {
+              return obj.category === categoryNumber;
+            });
+            let integratedResult = categoryResult.filter(function (obj) {
+              return obj.id === idNumber;
+            });
+            return integratedResult[0];
+          })
+          .catch((error) => {
+            console.error(error);
+            return null;
+          });
+      }
+      async function remote_file_head_test(audioFilesList) {
+        const promises = audioFilesList.map((url) =>
+          fetch(url, { method: "HEAD" })
+        );
+        const responses = await Promise.all(promises);
+        return responses.map((response) => response.status);
+      }
+      document.addEventListener('DOMContentLoaded',function() {
+        for (let i = 0; i < FORMAT_LIST_JSON.length; i++) {
+          var temp_codecSelectBox1 = document.getElementById('codecSelectBox1');
+          var temp_codecSelectBox1_inOption = document.createElement('option');
+          temp_codecSelectBox1_inOption.value = FORMAT_LIST_JSON.codecList[i].id;
+          temp_codecSelectBox1_inOption.text = FORMAT_LIST_JSON.codecList[i].label;
+          if (FORMAT_LIST_JSON.codecList[i].id === DEFAULT_SELECTED[0].codec) {
+            temp_codecSelectBox1_inOption.selected = true;
+          }
+          temp_codecSelectBox1.appendChild(temp_codecSelectBox1_inOption);
+        }
+        for (let i = 0; i < FORMAT_LIST_JSON.length; i++) {
+          var temp_codecSelectBox2 = document.getElementById('codecSelectBox2');
+          var temp_codecSelectBox2_inOption = document.createElement('option');
+          temp_codecSelectBox2_inOption.value = FORMAT_LIST_JSON.codecList[i].id;
+          temp_codecSelectBox2_inOption.text = FORMAT_LIST_JSON.codecList[i].label;
+          if (FORMAT_LIST_JSON.codecList[i].id === DEFAULT_SELECTED[1].codec) {
+            temp_codecSelectBox2_inOption.selected = true;
+          }
+          temp_codecSelectBox2.appendChild(temp_codecSelectBox2_inOption);
+        }
+      });
+      function refreshRcSelectBox() {
+        var temp_codecSelectBox1_selected_index = document.getElementById('codecSelectBox1').selectedIndex;
+        var temp_codecSelectBox2_selected_index = document.getElementById('codecSelectBox2').selectedIndex;
+        var temp_codecSelectBox1_selected_option = document.getElementById('codecSelectBox1').options[temp_codecSelectBox1_selected_index];
+        var temp_codecSelectBox2_selected_option = document.getElementById('codecSelectBox2').options[temp_codecSelectBox2_selected_index];
+        for (let i = 0; i < FORMAT_LIST_JSON[temp_codecSelectBox1_selected_option.value].rcList.length; i++) {
+          var temp_rcSelectBox1 = document.getElementById('rcSelectBox1');
+          var temp_rcSelectBox1_inOption = document.createElement('option');
+          temp_rcSelectBox1_inOption.value = FORMAT_LIST_JSON[temp_codecSelectBox1_selected_option.value].rcList[i].id;
+          temp_rcSelectBox1_inOption.text = FORMAT_LIST_JSON[temp_codecSelectBox1_selected_option.value].rcList[i].label;
+          if (FORMAT_LIST_JSON[temp_codecSelectBox1_selected_option.value].rcList[i].id === DEFAULT_SELECTED[0].rc) {
+            temp_rcSelectBox1_inOption.selected = true;
+          }
+          temp_rcSelectBox1.appendChild(temp_rcSelectBox1_inOption);
+        }
+        for (let i = 0; i < FORMAT_LIST_JSON[temp_codecSelectBox2_selected_option.value].rcList.length; i++) {
+          var temp_rcSelectBox2 = document.getElementById('rcSelectBox2');
+          var temp_rcSelectBox2_inOption = document.createElement('option');
+          temp_rcSelectBox2_inOption.value = FORMAT_LIST_JSON[temp_codecSelectBox2_selected_option.value].rcList[i].id;
+          temp_rcSelectBox2_inOption.text = FORMAT_LIST_JSON[temp_codecSelectBox2_selected_option.value].rcList[i].label;
+          if (FORMAT_LIST_JSON[temp_codecSelectBox2_selected_option.value].rcList[i].id === DEFAULT_SELECTED[1].rc) {
+            temp_rcSelectBox2_inOption.selected = true;
+          }
+          temp_rcSelectBox2.appendChild(temp_rcSelectBox2_inOption);
+        }
+      }
+    </script>
+  </body>
+</html>
