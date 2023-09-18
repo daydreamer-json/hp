@@ -200,7 +200,8 @@
           document.getElementById('trackInfo_albumName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumTitle;
           document.getElementById('trackInfo_artistName').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].albumArtist;
           document.getElementById('trackInfo_copyright').textContent = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].copyright;
-          document.getElementById('cover_bg').src = FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].coverExtLink;
+          document.getElementById('cover_bg').src = `${BASE_SETTINGS.audioRootURL}/${FILE_DATABASE.list[randomTrackSelectorOutput.albumIndex].rootPath}/cover.webp`;
+          
           if (document.getElementById('trackInfo_trackName').style.display == 'none' && document.getElementById('trackInfo_albumName').style.display == 'none' && document.getElementById('trackInfo_artistName').style.display == 'none' && document.getElementById('trackInfo_copyright').style.display == 'none' && document.getElementById('cover_bg').style.display == 'none') {
             document.getElementById('trackInfo_trackName').style.display = 'block';
             document.getElementById('trackInfo_albumName').style.display = 'block';
