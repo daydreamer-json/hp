@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <style>
+      :root { font-family: 'Inter', sans-serif; }
+      @supports (font-variation-settings: normal) {
+        :root { font-family: 'Inter var', sans-serif; }
+      }
+      body {
+        margin: 0;
+        background-color: #000000;
+        width: 100vw;
+        height: 100vh;
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      }
+      .wrapper {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      #player, .plyr {
+        flex-grow: 1;
+        height: 100%;
+        width: 100%;
+      }
+      footer.copyrightDisp {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        padding: 0;
+        margin: 0 0 10px 10px;
+        color: #ffffff80;
+        z-index: 2;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <video id="player" playsinline controls>
+      </video>
+    </div>
+    <footer class="copyrightDisp">
+      Resources are created for research purposes.<br>
+      (C) 2023 Tappei Nagatsuki, KADOKAWA, daydreamer-json
+    </footer>
+    <script>
+      const plyrOptions = {
+        enabled: true,
+        debug: false,
+        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+        settings: ['captions', 'quality', 'speed', 'loop'],
+        blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
+        autoplay: false,
+        autopause: true,
+        playsinline: true,
+        volume: 1,
+        muted: false,
+        clickToPlay: true,
+        disableContextMenu: true,
+        hideControls: true,
+        resetOnEnd: false,
+        keyboard: { focused: true, global: false },
+        tooltips: { controls: true, seek: true },
+        displayDuration: true,
+        invertTime: true,
+        toggleInvert: true,
+        captions: { active: false, language: 'auto', update: false },
+        fullscreen: { enabled: true, fallback: true, iosNative: false, container: null },
+        storage: { enabled: true, key: 'plyr' },
+        speed: { selected: 1, options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 4] },
+        quality: { default: 1080, options: [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240, 144] },
+        loop: { active: false },
+        previewThumbnails: { enabled: false, src: '' },
+        mediaMetadata: { title: '', artist: '', album: '', artwork: [] },
+        title: '',
+        i18n: {
+          "restart": "再起動",
+          "rewind": "{seektime}秒戻る",
+          "play": "再生",
+          "pause": "一時停止",
+          "fastForward": "{seektime}秒進む",
+          "seek": "シーク",
+          "seekLabel": "{currentTime} / {duration}",
+          "played": "再生中",
+          "buffered": "読み込み中",
+          "currentTime": "再生位置",
+          "duration": "長さ",
+          "volume": "音量",
+          "mute": "ミュート",
+          "unmute": "ミュート解除",
+          "enableCaptions": "字幕オン",
+          "disableCaptions": "字幕オフ",
+          "download": "ダウンロード",
+          "enterFullscreen": "全画面表示",
+          "exitFullscreen": "全画面表示を終了",
+          "frameTitle": "{title}",
+          "captions": "字幕",
+          "settings": "設定",
+          "pip": "ピクチャインピクチャ",
+          "menuBack": "前のメニューに戻る",
+          "speed": "速度",
+          "normal": "標準",
+          "quality": "画質",
+          "loop": "ループ",
+          "start": "開始",
+          "end": "終了",
+          "all": "すべて",
+          "reset": "リセット",
+          "disabled": "無効",
+          "enabled": "有効",
+          "advertisement": "広告",
+          "qualityBadge": {
+            "2160": "4K",
+            "1440": "HD",
+            "1080": "HD",
+            "720": "HD",
+            "576": "SD",
+            "480": "SD"
+          }
+        }
+      };
+      const player = new Plyr('#player', plyrOptions);
+      player.source = {
+        type: 'video',
+        title: 're_zero_s2_sp_nc_op',
+        sources: [
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_144p_h264.mp4',
+            type: 'video/mp4;codecs="avc1.64000C,mp4a.40.29"',
+            size: 144,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_144p_hevc.mp4',
+            type: 'video/mp4;codecs="hvc1.1.2.L60.90,mp4a.40.29"',
+            size: 144,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_240p_h264.mp4',
+            type: 'video/mp4;codecs="avc1.640015,mp4a.40.5"',
+            size: 144,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_240p_hevc.mp4',
+            type: 'video/mp4;codecs="hvc1.1.2.L60.90,mp4a.40.5"',
+            size: 240,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_360p_h264.mp4',
+            type: 'video/mp4;codecs="avc1.64001E,mp4a.40.2"',
+            size: 360,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_360p_hevc.mp4',
+            type: 'video/mp4;codecs="hvc1.1.2.L63.90,mp4a.40.2"',
+            size: 360,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_480p_h264.mp4',
+            type: 'video/mp4;codecs="avc1.64001E,mp4a.40.2"',
+            size: 480,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_480p_hevc.mp4',
+            type: 'video/mp4;codecs="hvc1.1.2.L90.90,mp4a.40.2"',
+            size: 480,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_720p_h264.mp4',
+            type: 'video/mp4;codecs="avc1.64001F,mp4a.40.2"',
+            size: 720,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_720p_hevc.mp4',
+            type: 'video/mp4;codecs="hvc1.1.2.L93.90,mp4a.40.2"',
+            size: 720,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_1080p_h264.mp4',
+            type: 'video/mp4;codecs="avc1.640028,mp4a.40.2"',
+            size: 1080,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_1080p_hevc.mp4',
+            type: 'video/mp4;codecs="hvc1.1.2.L120.90,mp4a.40.2"',
+            size: 1080,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_2160p_h264.mp4',
+            type: 'video/mp4;codecs="avc1.640033,mp4a.40.2"',
+            size: 2160,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_2160p_hevc.mp4',
+            type: 'video/mp4;codecs="hvc1.1.2.L150.90,mp4a.40.2"',
+            size: 2160,
+          },
+          {
+            src: 'https://github.com/daydreamer-json/release_storage_test/releases/download/re_zero_s2_sp_nc_op_mp4_test/vid_2160p_hevc_main10.mp4',
+            type: 'video/mp4;codecs="hvc1.2.4.L150.90,mp4a.40.2"',
+            size: 2160,
+          },
+        ]
+      };
+    </script>
+  </body>
+</html>
