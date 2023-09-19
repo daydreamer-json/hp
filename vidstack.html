@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vidstack/styles/defaults.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vidstack/styles/community-skin/video.min.css" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/vidstack/dist/cdn/prod.js"></script>
+    <style>
+      :root { font-family: 'Inter', sans-serif; }
+      @supports (font-variation-settings: normal) {
+        :root { font-family: 'Inter var', sans-serif; }
+      }
+      body {
+        margin: 0;
+        background-color: #000000;
+        width: 100vw;
+        height: 100vh;
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      }
+      .wrapper {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      #player {
+        flex-grow: 1;
+        height: 100%;
+        width: 100%;
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      }
+      media-player {
+        --media-font-family: 'Inter', 'Noto Sans JP' !important;
+      }
+      footer.copyrightDisp {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        padding: 0;
+        margin: 0 0 10px 10px;
+        color: #ffffff80;
+        z-index: 2;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <media-player
+        title=""
+        aspect-ratio="16/9"
+        crossorigin
+        id="player"
+      >
+        <media-outlet id="player-media-outlet-el">
+        </media-outlet>
+        <media-community-skin></media-community-skin>
+      </media-player>
+    </div>
+    <!-- <footer class="copyrightDisp">
+      Resources are created for research purposes.<br>
+      (C) 2023 Tappei Nagatsuki, KADOKAWA, daydreamer-json
+    </footer> -->
+    <script>
+      window.addEventListener('load', function(){
+        const player = document.querySelector('media-player');
+        const pageUrlLocationHref = new URL(location.href);
+        const pageSearchParams = pageUrlLocationHref.searchParams;
+        if (pageSearchParams.has("url") === true) {
+          player.onAttach(() => {
+            const outletElement = document.querySelector('#player-media-outlet-el');
+            const sourceElement = document.createElement("source");
+            sourceElement.src = pageSearchParams.get("url");
+            outletElement.appendChild(sourceElement);
+          })
+        } else {
+          const promptedUrl = prompt("Please input source URL");
+          if (promptedUrl === "") {
+            alert("Source not found");
+          } else {
+            player.onAttach(() => {
+              const outletElement = document.querySelector('#player-media-outlet-el');
+              const sourceElement = document.createElement("source");
+              sourceElement.src = promptedUrl;
+              outletElement.appendChild(sourceElement);
+            })
+          }
+        }
+
+      });
+    </script>
+  </body>
+</html>
