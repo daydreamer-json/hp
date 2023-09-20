@@ -35,7 +35,7 @@
         font-family: 'Inter', 'Noto Sans JP', sans-serif;
       }
       media-player {
-        --media-font-family: 'Inter', 'Noto Sans JP' !important;
+        --video-font-family: 'Inter', 'Noto Sans JP', sans-serif !important;
       }
       footer.copyrightDisp {
         position: fixed;
@@ -68,6 +68,7 @@
     </footer> -->
     <script>
       window.addEventListener('load', function(){
+        document.oncontextmenu = function () {return false;}
         const player = document.querySelector('media-player');
         const pageUrlLocationHref = new URL(location.href);
         const pageSearchParams = pageUrlLocationHref.searchParams;
@@ -77,6 +78,7 @@
             const sourceElement = document.createElement("source");
             sourceElement.src = pageSearchParams.get("url");
             outletElement.appendChild(sourceElement);
+            player.title = pageSearchParams.get("url").match(/^(?:[^:\/?#]+:)?(?:\/\/[^\/?#]*)?(?:([^?#]*\/)([^\/?#]*))?(\?[^#]*)?(?:#.*)?$/)[2].match(/^(.+?)(\.[^.]+)?$/)[1];
           })
         } else {
           const promptedUrl = prompt("Please input source URL");
@@ -88,6 +90,7 @@
               const sourceElement = document.createElement("source");
               sourceElement.src = promptedUrl;
               outletElement.appendChild(sourceElement);
+              player.title = pageSearchParams.get("url").match(".+/(.+?)\.[a-z]+([\?#;].*)?$")[1];
             })
           }
         }
