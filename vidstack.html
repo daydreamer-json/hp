@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/daydreamer-json/SomeFontRepo@main/somefontrepo.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -30,12 +31,37 @@
       }
       #player {
         flex-grow: 1;
+        top: 0;
+        left: 0;
         height: 100%;
         width: 100%;
         font-family: 'Inter', 'Noto Sans JP', sans-serif;
       }
       media-player {
         --video-font-family: 'Inter', 'Noto Sans JP', sans-serif !important;
+        --media-buffering-size: 84px;
+        --media-buffering-transition: opacity 200ms ease;
+        --media-buffering-animation: media-buffering-spin 1.2s linear infinite;
+        --media-buffering-track-color: #f5f5f5;
+        --media-buffering-track-opacity: 0;
+        --media-buffering-track-width: 8;
+        --media-buffering-track-fill-color: #ffffff;
+        --media-buffering-track-fill-opacity: 0.75;
+        --media-buffering-track-fill-width: 9;
+        --media-buffering-track-fill-offset: 50;
+        /* --media-cue-bg: rgba(0, 0, 0, 0.8); */
+        --media-cue-bg: rgba(0, 0, 0, 0);
+        /* --media-cue-backdrop: blur(8px); */
+        --media-cue-backdrop: none;
+      }
+      media-captions {
+        /* font-family: 'SDK_JP_Web', sans-serif; */
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.75), -1px 1px 0 rgba(0, 0, 0, 0.75), 1px -1px 0 rgba(0, 0, 0, 0.75), -1px -1px 0 rgba(0, 0, 0, 0.75);
+      }
+      media-player:not([data-can-play]) .media-buffering-indicator,
+      media-player[data-waiting] .media-buffering-indicator {
+        opacity: 1;
       }
       footer.copyrightDisp {
         position: fixed;
@@ -53,6 +79,7 @@
     <div class="wrapper">
       <media-player
         title=""
+        poster="https://singlecolorimage.com/get/000000/640x360"
         aspect-ratio="16/9"
         crossorigin
         id="player"
@@ -62,40 +89,59 @@
         <media-community-skin></media-community-skin>
       </media-player>
     </div>
-    <!-- <footer class="copyrightDisp">
-      Resources are created for research purposes.<br>
-      (C) 2023 Tappei Nagatsuki, KADOKAWA, daydreamer-json
-    </footer> -->
     <script>
       window.addEventListener('load', function(){
         document.oncontextmenu = function () {return false;}
         const player = document.querySelector('media-player');
-        const pageUrlLocationHref = new URL(location.href);
-        const pageSearchParams = pageUrlLocationHref.searchParams;
-        if (pageSearchParams.has("url") === true) {
-          player.onAttach(() => {
-            const outletElement = document.querySelector('#player-media-outlet-el');
-            const sourceElement = document.createElement("source");
-            sourceElement.src = pageSearchParams.get("url");
-            outletElement.appendChild(sourceElement);
-            player.title = pageSearchParams.get("url").match(/^(?:[^:\/?#]+:)?(?:\/\/[^\/?#]*)?(?:([^?#]*\/)([^\/?#]*))?(\?[^#]*)?(?:#.*)?$/)[2].match(/^(.+?)(\.[^.]+)?$/)[1];
-          })
-        } else {
-          const promptedUrl = prompt("Please input source URL");
-          if (promptedUrl === "") {
-            alert("Source not found");
+        player.onAttach(() => {
+          const pageUrlLocationHref = new URL(location.href);
+          const pageSearchParams = pageUrlLocationHref.searchParams;
+          if (pageSearchParams.has("url") === true && pageSearchParams.get("url") !== "") {
+            attachSourceToPlayer(pageSearchParams.get("url"));
+            if (pageSearchParams.has("subtitle") === true && pageSearchParams.get("subtitle") !== "") {
+              attachSubtitleSourceToPlayer(pageSearchParams.get("subtitle"));
+            }
           } else {
-            player.onAttach(() => {
-              const outletElement = document.querySelector('#player-media-outlet-el');
-              const sourceElement = document.createElement("source");
-              sourceElement.src = promptedUrl;
-              outletElement.appendChild(sourceElement);
-              player.title = pageSearchParams.get("url").match(".+/(.+?)\.[a-z]+([\?#;].*)?$")[1];
-            })
+            const promptedUrl = prompt("Please input source URL");
+            if (promptedUrl === "") {
+              alert("Source not found");
+            } else {
+              attachSourceToPlayer(promptedUrl);
+            }
           }
-        }
-
+        })
+        player.addEventListener('provider-change', (event) => {
+          const provider = event.detail;
+          if (provider?.type === 'hls') {
+            provider.library = 'https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js';
+            provider.config = {
+              "debug": true,
+              "enableWorker": true,
+              "lowLatencyMode": true,
+              "backBufferLength": 90
+            };
+            window.provider = provider;
+          }
+        });
       });
+      function attachSourceToPlayer (url) {
+        // Attach source URL to Vidstack Player
+        const outletElement = document.querySelector('#player-media-outlet-el');
+        const sourceElement = document.createElement("source");
+        sourceElement.src = url;
+        outletElement.appendChild(sourceElement);
+        // Extract and set source title from URL
+        // Search "filename.ext" from path string and extract "filename" (exclude ext)
+        player.title = url.match(/^(?:[^:\/?#]+:)?(?:\/\/[^\/?#]*)?(?:([^?#]*\/)([^\/?#]*))?(\?[^#]*)?(?:#.*)?$/)[2].match(/^(.+?)(\.[^.]+)?$/)[1];
+      }
+      function attachSubtitleSourceToPlayer (url) {
+        const outletElement = document.querySelector('#player-media-outlet-el');
+        const trackElement = document.createElement("track");
+        trackElement.src = url;
+        trackElement.kind = "subtitles";
+        trackElement.label = "Subtitle";
+        outletElement.appendChild(trackElement);
+      }
     </script>
   </body>
 </html>
