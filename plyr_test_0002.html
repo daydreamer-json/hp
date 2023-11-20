@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <style>
+      :root { font-family: 'Inter', sans-serif; }
+      @supports (font-variation-settings: normal) {
+        :root { font-family: 'Inter var', sans-serif; }
+      }
+      body {
+        margin: 0;
+        background-color: #000000;
+        width: 100vw;
+        height: 100vh;
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      }
+      .wrapper {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      #player, .plyr {
+        flex-grow: 1;
+        height: 100%;
+        width: 100%;
+      }
+      footer.copyrightDisp {
+        display: none;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        padding: 0;
+        margin: 0 0 10px 10px;
+        color: #ffffff80;
+        z-index: 2;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <video id="player" playsinline controls>
+      </video>
+    </div>
+    <footer class="copyrightDisp">
+      Resources are created for research purposes.<br>
+      (C) 2023 Tappei Nagatsuki, KADOKAWA, daydreamer-json
+    </footer>
+    <script>
+      const plyrOptions = {
+        enabled: true,
+        debug: false,
+        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+        settings: ['captions', 'quality', 'speed', 'loop'],
+        blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
+        autoplay: false,
+        autopause: true,
+        playsinline: true,
+        volume: 1,
+        muted: false,
+        clickToPlay: true,
+        disableContextMenu: true,
+        hideControls: true,
+        resetOnEnd: false,
+        keyboard: { focused: true, global: false },
+        tooltips: { controls: true, seek: true },
+        displayDuration: true,
+        invertTime: true,
+        toggleInvert: true,
+        captions: { active: false, language: 'auto', update: false },
+        fullscreen: { enabled: true, fallback: true, iosNative: false, container: null },
+        storage: { enabled: true, key: 'plyr' },
+        speed: { selected: 1, options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 4] },
+        quality: { default: 1080, options: [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240, 144] },
+        loop: { active: false },
+        previewThumbnails: { enabled: false, src: '' },
+        mediaMetadata: { title: '', artist: '', album: '', artwork: [] },
+        title: '',
+        i18n: {
+          "restart": "再起動",
+          "rewind": "{seektime}秒戻る",
+          "play": "再生",
+          "pause": "一時停止",
+          "fastForward": "{seektime}秒進む",
+          "seek": "シーク",
+          "seekLabel": "{currentTime} / {duration}",
+          "played": "再生中",
+          "buffered": "読み込み中",
+          "currentTime": "再生位置",
+          "duration": "長さ",
+          "volume": "音量",
+          "mute": "ミュート",
+          "unmute": "ミュート解除",
+          "enableCaptions": "字幕オン",
+          "disableCaptions": "字幕オフ",
+          "download": "ダウンロード",
+          "enterFullscreen": "全画面表示",
+          "exitFullscreen": "全画面表示を終了",
+          "frameTitle": "{title}",
+          "captions": "字幕",
+          "settings": "設定",
+          "pip": "ピクチャインピクチャ",
+          "menuBack": "前のメニューに戻る",
+          "speed": "速度",
+          "normal": "標準",
+          "quality": "画質",
+          "loop": "ループ",
+          "start": "開始",
+          "end": "終了",
+          "all": "すべて",
+          "reset": "リセット",
+          "disabled": "無効",
+          "enabled": "有効",
+          "advertisement": "広告",
+          "qualityBadge": {
+            "2160": "4K",
+            "1440": "HD",
+            "1080": "HD",
+            "720": "HD",
+            "576": "SD",
+            "480": "SD"
+          }
+        }
+      };
+      const player = new Plyr('#player', plyrOptions);
+      const videoFileName = 'Cs_LQ1101502_ShenheBattle_Girl';
+      player.source = {
+        type: 'video',
+        title: 're_zero_s2_sp_nc_op',
+        sources: [
+          {
+            src: `https://huggingface.co/datasets/DeliberatorArchiver/gi_cutscn_new_mux/resolve/main/media/mux/variant/hevc_240p_aac_128k/${videoFileName}.mp4`,
+            size: 240,
+          },
+          {
+            src: `https://huggingface.co/datasets/DeliberatorArchiver/gi_cutscn_new_mux/resolve/main/media/mux/variant/hevc_360p_aac_128k/${videoFileName}.mp4`,
+            size: 360,
+          },
+          {
+            src: `https://huggingface.co/datasets/DeliberatorArchiver/gi_cutscn_new_mux/resolve/main/media/mux/variant/hevc_480p_aac_128k/${videoFileName}.mp4`,
+            size: 480,
+          },
+          {
+            src: `https://huggingface.co/datasets/DeliberatorArchiver/gi_cutscn_new_mux/resolve/main/media/mux/variant/hevc_720p_aac_256k/${videoFileName}.mp4`,
+            size: 720,
+          },
+          {
+            src: `https://huggingface.co/datasets/DeliberatorArchiver/gi_cutscn_new_mux/resolve/main/media/mux/variant/hevc_1080p_aac_256k/${videoFileName}.mp4`,
+            size: 1080,
+          }
+        ]
+      };
+    </script>
+  </body>
+</html>

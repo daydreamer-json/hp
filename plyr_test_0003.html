@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      :root { font-family: 'Inter', sans-serif; }
+      @supports (font-variation-settings: normal) {
+        :root { font-family: 'Inter var', sans-serif; }
+      }
+      body {
+        margin: 0;
+        background-color: #000000;
+        width: 100vw;
+        height: 100vh;
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      }
+      .wrapper {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      #player {
+        flex-grow: 1;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <video id="player" playsinline controls src="https://huggingface.co/datasets/DeliberatorArchiver/gi_cutscn_new_mux/resolve/main/media/mux/variant/hevc_1080p_aac_256k/Cs_LQ1101502_ShenheBattle_Girl.mp4">
+      </video>
+    </div>
+    <script>
+    </script>
+  </body>
+</html>
