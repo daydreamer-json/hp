@@ -94,34 +94,40 @@
       </media-player>
     </div>
     <script>
+      const uiTranslation = {
+        "ja-JP": {
+          "Audio": "音声",
+          "Auto": "自動",
+          "Captions": "字幕",
+          "Chapters": "チャプター",
+          "Default": "既定",
+          "Mute": "ミュート",
+          "Normal": "標準",
+          "Off": "オフ",
+          "Pause": "一時停止",
+          "Play": "再生",
+          "Speed": "速度",
+          "Quality": "画質",
+          "Settings": "設定",
+          "Unmute": "ミュート解除",
+          "Seek Forward": "進む",
+          "Seek Backward": "戻る",
+          "Closed-Captions On": "字幕オン",
+          "Closed-Captions Off": "字幕オフ",
+          "Enter Fullscreen": "全画面表示",
+          "Exit Fullscreen": "全画面表示を終了",
+          "Enter PiP": "PiP",
+          "Exit PiP": "PiPを終了"
+        }
+      };
+      const pageUUID = "d511b8f7-5579-41a6-8450-e9f958507f94";
+      let playerConfigObject = {
+        "volume": null,
+        "muted": null
+      };
+      window.volumeChangeEventCounter = 0;
       window.addEventListener('load', async function(){
         // const cbor = require('cbor-web');
-        window.uiTranslation = {
-          "ja-JP": {
-            "Audio": "音声",
-            "Auto": "自動",
-            "Captions": "字幕",
-            "Chapters": "チャプター",
-            "Default": "既定",
-            "Mute": "ミュート",
-            "Normal": "標準",
-            "Off": "オフ",
-            "Pause": "一時停止",
-            "Play": "再生",
-            "Speed": "速度",
-            "Quality": "画質",
-            "Settings": "設定",
-            "Unmute": "ミュート解除",
-            "Seek Forward": "進む",
-            "Seek Backward": "戻る",
-            "Closed-Captions On": "字幕オン",
-            "Closed-Captions Off": "字幕オフ",
-            "Enter Fullscreen": "全画面表示",
-            "Exit Fullscreen": "全画面表示を終了",
-            "Enter PiP": "PiP",
-            "Exit PiP": "PiPを終了"
-          }
-        };
         // uiTranslation.cbor.ja = atob(uiTranslation.base64.ja);
         // uiTranslation.json.ja = await cbor.decodeFirst(uiTranslation.cbor.ja);
         document.oncontextmenu = function () {return false;}
@@ -151,13 +157,21 @@
           if (provider?.type === 'hls') {
             provider.library = 'https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js';
             provider.config = {
-              "debug": true,
+              "debug": false,
               "enableWorker": true,
               "lowLatencyMode": true,
               "backBufferLength": 90
             };
             window.provider = provider;
           }
+        });
+        importConfigFromBrowser();
+        player.addEventListener('volume-change', (event) => {
+          volumeChangeSaveToConfig();
+        });
+        const { audioTracks } = player.state;
+        player.subscribe(({ audioTracks }) => {
+          mhyLangAutoSelect(JSON.stringify(audioTracks, '', '  '));
         });
       });
       function attachSourceToPlayer (url) {
@@ -171,6 +185,64 @@
         trackElement.kind = "subtitles";
         trackElement.label = "Subtitle";
         outletElement.appendChild(trackElement);
+      }
+      function volumeChangeSaveToConfig () {
+        if (volumeChangeEventCounter >= 0) {
+          playerConfigObject.volume = player.volume;
+          playerConfigObject.muted = player.muted;
+          saveConfigToBrowser();
+        }
+        volumeChangeEventCounter += 1;
+      }
+      function importConfigFromBrowser () {
+        if (window.localStorage && localStorage.getItem(`${pageUUID}`) !== null) {
+          playerConfigObject = JSON.parse(localStorage.getItem(`${pageUUID}`));
+          player.volume = playerConfigObject.volume;
+          player.muted = playerConfigObject.muted;
+          console.warn(`Loaded config from localStorage\n${pageUUID} = ${JSON.stringify(playerConfigObject, '', '  ')}`);
+        }
+      }
+      function saveConfigToBrowser () {
+        if (window.localStorage) {
+          localStorage.setItem(`${pageUUID}`, JSON.stringify(playerConfigObject));
+          console.warn(`Saved config to localStorage\n${pageUUID} = ${JSON.stringify(playerConfigObject, '', '  ')}`);
+        }
+      }
+      function mhyLangAutoSelect (audioTracks) {
+        const testBefore = [
+          {
+            "id": "0",
+            "label": "Chinese",
+            "language": "zh-CN",
+            "kind": "main"
+          },
+          {
+            "id": "1",
+            "label": "English",
+            "language": "en-US",
+            "kind": "main"
+          },
+          {
+            "id": "2",
+            "label": "Japanese",
+            "language": "ja-JP",
+            "kind": "main"
+          },
+          {
+            "id": "3",
+            "label": "Korean",
+            "language": "ko-KR",
+            "kind": "main"
+          }
+        ];
+        if (audioTracks === JSON.stringify(testBefore, '', '  ')) {
+          for (let i = 0; i < testBefore.length; i++) {
+            if (window.navigator.language.slice(0,2) === testBefore[i].language.slice(0,2)) {
+              player.audioTracks[i].selected = true;
+              console.warn(`Player audio language has been automatically changed to\n${JSON.stringify(player.audioTracks[i], '', '  ')}`);
+            }
+          }
+        }
       }
     </script>
   </body>
