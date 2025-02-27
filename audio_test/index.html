@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audio test playground</title>
+    <meta name="description" content="Audio test playground" />
+    <meta property="og:title" content="Audio test playground" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
+    <meta property="og:image:alt" content="" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Audio test playground" />
+    <meta name="twitter:image" content="" />
+    <!-- <link rel="icon" href="/favicon.ico" sizes="any" />
+      <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+      <link rel="apple-touch-icon" href="icon.png" /> -->
+    <meta name="theme-color" content="#fafafa" />
+    <style>
+      @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3/dist/css/bootstrap.min.css');
+      @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11/font/bootstrap-icons.min.css');
+      @import url('https://rsms.me/inter/inter.css');
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+SC:wght@100..900&display=swap');
+      @import url('./assets/css/top.css');
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3/dist/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container my-4 px-4" id="mainContainer">
+      <h1>Audio Test Playground</h1>
+      <p>Music is bliss for me.</p>
+      <hr class="my-3" />
+      <h2>Gapless Loop Test</h2>
+      <p>
+        This is an experiment in gapless playback using Web Audio API, with waveform display in Wavesurfer.js. It also
+        calculates beat information.
+      </p>
+      <div class="card card-body">
+        <div class="mb-3">
+          <!-- <label for="sec1_audioSourceSelectList" class="form-label">選択の例</label> -->
+          <select class="form-select" id="sec1_audioSourceSelectList"></select>
+        </div>
+        <div id="sec1_audioPlayerControlDiv">
+          <input class="btn-check" type="checkbox" id="sec1_button_playPause" />
+          <label for="sec1_button_playPause" class="btn btn-outline-primary align-items-center align-middle">
+            <i class="bi bi-play-fill fs-4"></i>
+          </label>
+          <button id="sec1_button_stop" class="btn btn-primary align-items-center align-middle">
+            <i class="bi bi-stop-fill fs-4"></i>
+          </button>
+          <button id="sec1_button_skipStart" class="btn btn-primary align-items-center align-middle">
+            <i class="bi bi-skip-start-fill fs-4"></i>
+          </button>
+          <button id="sec1_button_skipEnd" class="btn btn-primary align-items-center align-middle">
+            <i class="bi bi-skip-end-fill fs-4"></i>
+          </button>
+          <button id="sec1_button_skipRewind" class="btn btn-primary align-items-center align-middle">
+            <i class="bi bi-rewind-fill fs-4"></i>
+          </button>
+          <button id="sec1_button_skipForward" class="btn btn-primary align-items-center align-middle">
+            <i class="bi bi-fast-forward-fill fs-4"></i>
+          </button>
+        </div>
+        <div id="sec1_wavesurfer" class="my-2"></div>
+        <pre><code id="sec1_infoText_upd">&nbsp;</code></pre>
+      </div>
+    </div>
+    <script type="module" src="./assets/js/top.js"></script>
+  </body>
+</html>

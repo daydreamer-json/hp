@@ -1,0 +1,53 @@
+html,
+body {
+  font-family:
+    /* 'SF Pro Text', */ Inter, 'Noto Sans JP', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+}
+
+.font-monospace {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Noto Sans JP', 'Noto Sans SC', SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace, sans-serif, system-ui !important;
+}
+
+pre,
+code,
+kbd,
+samp,
+tt {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Noto Sans JP', 'Noto Sans SC', SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace, sans-serif, system-ui;
+}
+
+.user-drag-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.btn-bg-blue {
+  --bs-btn-color: #0d6efd !important;
+  --bs-btn-border-color: #0d6efd !important;
+  --bs-btn-active-bg: #0d6efd !important;
+  --bs-btn-active-border-color: #0d6efd !important;
+}
+.btn-bg-red {
+  --bs-btn-color: #dc3545 !important;
+  --bs-btn-border-color: #dc3545 !important;
+  --bs-btn-active-bg: #dc3545 !important;
+  --bs-btn-active-border-color: #dc3545 !important;
+}
+.btn-bg-purple {
+  --bs-btn-color: #6f42c1 !important;
+  --bs-btn-border-color: #6f42c1 !important;
+  --bs-btn-active-bg: #6f42c1 !important;
+  --bs-btn-active-border-color: #6f42c1 !important;
+}
+.btn-bg-black {
+  --bs-btn-color: #000000 !important;
+  --bs-btn-border-color: #000000 !important;
+  --bs-btn-active-bg: #000000 !important;
+  --bs-btn-active-border-color: #000000 !important;
+}
