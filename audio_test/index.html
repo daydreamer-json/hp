@@ -37,33 +37,100 @@
         calculates beat information.
       </p>
       <div class="card card-body">
-        <div class="mb-3">
-          <!-- <label for="sec1_audioSourceSelectList" class="form-label">選択の例</label> -->
-          <select class="form-select" id="sec1_audioSourceSelectList"></select>
+        <div id="sec1_wavesurfer" class=""></div>
+        <div class="overflow-x-auto">
+          <table class="table table-sm align-middle">
+            <tbody>
+              <tr>
+                <td colspan="2"><select class="form-select" id="sec1_audioSourceSelectList"></select></td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <div id="sec1_audioPlayerControlDiv">
+                    <input class="btn-check" type="checkbox" id="sec1_button_playPause" disabled />
+                    <label for="sec1_button_playPause" class="btn btn-outline-primary align-items-center align-middle">
+                      <i class="bi bi-play-fill fs-4"></i>
+                    </label>
+                    <button id="sec1_button_stop" class="btn btn-primary align-items-center align-middle" disabled>
+                      <i class="bi bi-stop-fill fs-4"></i>
+                    </button>
+                    <button id="sec1_button_skipStart" class="btn btn-primary align-items-center align-middle" disabled>
+                      <i class="bi bi-skip-start-fill fs-4"></i>
+                    </button>
+                    <button id="sec1_button_skipEnd" class="btn btn-primary align-items-center align-middle" disabled>
+                      <i class="bi bi-skip-end-fill fs-4"></i>
+                    </button>
+                    <button
+                      id="sec1_button_skipRewind"
+                      class="btn btn-primary align-items-center align-middle"
+                      disabled
+                    >
+                      <i class="bi bi-rewind-fill fs-4"></i>
+                    </button>
+                    <button
+                      id="sec1_button_skipForward"
+                      class="btn btn-primary align-items-center align-middle"
+                      disabled
+                    >
+                      <i class="bi bi-fast-forward-fill fs-4"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Volume</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <input
+                      type="range"
+                      class="form-range flex-fill"
+                      min="0"
+                      max="100"
+                      value="50"
+                      id="sec1_audioPlayerControl_volume_slider"
+                    />
+                    <input
+                      type="number"
+                      class="form-control form-control-sm w-25 ms-3 text-end font-monospace"
+                      min="0"
+                      max="100"
+                      value="50"
+                      id="sec1_audioPlayerControl_volume_number"
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>TimeZoom</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <input
+                      type="range"
+                      class="form-range flex-fill"
+                      min="0"
+                      max="1000"
+                      value="100"
+                      id="sec1_audioPlayerControl_timeZoom_slider"
+                    />
+                    <input
+                      type="number"
+                      class="form-control form-control-sm w-25 ms-3 text-end font-monospace"
+                      min="0"
+                      max="1000"
+                      value="100"
+                      id="sec1_audioPlayerControl_timeZoom_number"
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <pre class="my-0"><code id="sec1_infoText_upd">&nbsp;</code></pre>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div id="sec1_audioPlayerControlDiv">
-          <input class="btn-check" type="checkbox" id="sec1_button_playPause" />
-          <label for="sec1_button_playPause" class="btn btn-outline-primary align-items-center align-middle">
-            <i class="bi bi-play-fill fs-4"></i>
-          </label>
-          <button id="sec1_button_stop" class="btn btn-primary align-items-center align-middle">
-            <i class="bi bi-stop-fill fs-4"></i>
-          </button>
-          <button id="sec1_button_skipStart" class="btn btn-primary align-items-center align-middle">
-            <i class="bi bi-skip-start-fill fs-4"></i>
-          </button>
-          <button id="sec1_button_skipEnd" class="btn btn-primary align-items-center align-middle">
-            <i class="bi bi-skip-end-fill fs-4"></i>
-          </button>
-          <button id="sec1_button_skipRewind" class="btn btn-primary align-items-center align-middle">
-            <i class="bi bi-rewind-fill fs-4"></i>
-          </button>
-          <button id="sec1_button_skipForward" class="btn btn-primary align-items-center align-middle">
-            <i class="bi bi-fast-forward-fill fs-4"></i>
-          </button>
-        </div>
-        <div id="sec1_wavesurfer" class="my-2"></div>
-        <pre><code id="sec1_infoText_upd">&nbsp;</code></pre>
       </div>
     </div>
     <script type="module" src="./assets/js/top.js"></script>

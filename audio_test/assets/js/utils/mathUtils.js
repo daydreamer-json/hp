@@ -56,7 +56,7 @@ export default {
     return (bytes / Math.pow(k, i)).toFixed(dm) + ' ' + sizes[i];
   },
 
-  calculateBarBeatTick(seconds, bpm, timeSignature = 4) {
+  calculateBarBeatTick(seconds, bpm, timeSignature = 4, triplets = false) {
     // 1拍の長さを計算 (60秒 / BPM)
     const beatLength = 60 / bpm;
     // 総拍数を計算
@@ -67,10 +67,14 @@ export default {
     const remainingBeats = totalBeats % timeSignature;
     // ティックを計算 (0-999)
     const ticks = Math.floor((remainingBeats - Math.floor(remainingBeats)) * 1000);
+    const ticksQuarter = Math.floor((remainingBeats - Math.floor(remainingBeats)) * 1000 * (triplets ? 3 : 4) - 1000 * Math.floor((triplets ? 3 : 4) * (ticks / 1000)));
     return {
       bars: bars + 1,
       beats: Math.floor(remainingBeats) + 1,
-      ticks: ticks
+      beatsQuarter: Math.floor((triplets ? 3 : 4) * (ticks / 1000)) + 1,
+      ticks,
+      ticksQuarter,
+      beatLength
     };
   }
 };
