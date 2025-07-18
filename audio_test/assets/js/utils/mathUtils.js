@@ -3,6 +3,14 @@ export default {
     return array.reduce((a, b) => Math.max(a, b));
   },
 
+  arrayMaxAbsolute(array) {
+    return array.reduce((max, current) => {
+      const absCurrent = Math.abs(current);
+      const absMax = Math.abs(max);
+      return absCurrent > absMax ? current : max;
+    });
+  },
+
   arrayMin(array) {
     return array.reduce((a, b) => Math.min(a, b));
   },

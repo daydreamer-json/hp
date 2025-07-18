@@ -22,6 +22,8 @@
       @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11/font/bootstrap-icons.min.css');
       @import url('https://rsms.me/inter/inter.css');
       @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+SC:wght@100..900&display=swap');
+      @import url('https://iosevka-webfonts.github.io/iosevka/Iosevka.css');
+      @import url('./assets/fonts/dseg/dseg.css');
       @import url('./assets/css/top.css');
     </style>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3/dist/js/bootstrap.min.js"></script>
@@ -36,7 +38,7 @@
         This is an experiment in gapless playback using Web Audio API, with waveform display in Wavesurfer.js. It also
         calculates beat information.
       </p>
-      <div class="card card-body">
+      <div id="sec1" class="card card-body">
         <div id="sec1_wavesurfer" class=""></div>
         <div class="overflow-x-auto">
           <table class="table table-sm align-middle">
@@ -125,11 +127,163 @@
               </tr>
               <tr>
                 <td colspan="2">
+                  <pre class="my-0 fs-1 fst-italic text-center" id="sec1_infoText_upd_bigBeatDisp">&nbsp;</pre>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2">
                   <pre class="my-0"><code id="sec1_infoText_upd">&nbsp;</code></pre>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+      <hr class="my-3" />
+      <h2>Multi-track Mixing Test</h2>
+      <p>This is description.</p>
+      <div id="sec2" class="card card-body">
+        <button id="sec2_button_load" class="btn btn-primary d-flex align-items-center justify-content-center">
+          <span><i class="bi bi-box-arrow-in-down fs-4 me-1"></i></span>Load
+        </button>
+        <div id="sec2_content" class="d-none">
+          <div id="sec2_wavesurfer_container" class=""></div>
+          <div id="sec2_innerContent" class="d-none">
+            <table class="table table-sm align-middle mb-0">
+              <tbody>
+                <tr>
+                  <td colspan="2">
+                    <pre class="my-0 fs-1 fst-italic text-center" id="sec2_infoText_upd_bigBeatDisp">&nbsp;</pre>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2">
+                    <pre class="my-0"><code id="sec2_infoText_upd">&nbsp;</code></pre>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <table id="sec2_control_table" class="table table-sm align-middle">
+              <tbody>
+                <tr>
+                  <td colspan="2">
+                    <div id="sec2_audioPlayerControlDiv">
+                      <input class="btn-check" type="checkbox" id="sec2_button_playPause" disabled />
+                      <label
+                        for="sec2_button_playPause"
+                        class="btn btn-outline-primary align-items-center align-middle"
+                      >
+                        <i class="bi bi-play-fill fs-4"></i>
+                      </label>
+                      <button id="sec2_button_stop" class="btn btn-primary align-items-center align-middle" disabled>
+                        <i class="bi bi-stop-fill fs-4"></i>
+                      </button>
+                      <button
+                        id="sec2_button_skipStart"
+                        class="btn btn-primary align-items-center align-middle"
+                        disabled
+                      >
+                        <i class="bi bi-skip-start-fill fs-4"></i>
+                      </button>
+                      <button id="sec2_button_skipEnd" class="btn btn-primary align-items-center align-middle" disabled>
+                        <i class="bi bi-skip-end-fill fs-4"></i>
+                      </button>
+                      <button
+                        id="sec2_button_skipRewind"
+                        class="btn btn-primary align-items-center align-middle"
+                        disabled
+                      >
+                        <i class="bi bi-rewind-fill fs-4"></i>
+                      </button>
+                      <button
+                        id="sec2_button_skipForward"
+                        class="btn btn-primary align-items-center align-middle"
+                        disabled
+                      >
+                        <i class="bi bi-fast-forward-fill fs-4"></i>
+                      </button>
+                      <button
+                        id="sec2_button_syncTrack"
+                        class="btn btn-primary align-items-center align-middle"
+                        disabled
+                      >
+                        <span class="fs-4">Sync</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>TimeZoom</td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <input
+                        type="range"
+                        class="form-range flex-fill"
+                        min="0"
+                        max="1000"
+                        value="100"
+                        id="sec2_audioPlayerControl_timeZoom_slider"
+                      />
+                      <input
+                        type="number"
+                        class="form-control form-control-sm w-25 ms-3 text-end font-monospace"
+                        min="0"
+                        max="1000"
+                        value="100"
+                        id="sec2_audioPlayerControl_timeZoom_number"
+                      />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Master Inst</td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <input
+                        type="range"
+                        class="form-range flex-fill"
+                        min="0"
+                        max="100"
+                        value="50"
+                        id="sec2_audioPlayerControl_volume_slider_inst"
+                      />
+                      <input
+                        type="number"
+                        class="form-control form-control-sm w-25 ms-3 text-end font-monospace"
+                        min="0"
+                        max="100"
+                        value="50"
+                        id="sec2_audioPlayerControl_volume_number_inst"
+                      />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Master Vocal</td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <input
+                        type="range"
+                        class="form-range flex-fill"
+                        min="0"
+                        max="100"
+                        value="50"
+                        id="sec2_audioPlayerControl_volume_slider_vocal"
+                      />
+                      <input
+                        type="number"
+                        class="form-control form-control-sm w-25 ms-3 text-end font-monospace"
+                        min="0"
+                        max="100"
+                        value="50"
+                        id="sec2_audioPlayerControl_volume_number_vocal"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
