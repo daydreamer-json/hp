@@ -1,6 +1,7 @@
 import textDefinition from './utils/definition.js';
 import bitShiftUtils from './utils/bitShift.js';
 import ky from 'https://cdn.jsdelivr.net/npm/ky/+esm';
+import howler from 'https://cdn.jsdelivr.net/npm/howler@2/+esm';
 import { DateTime, Duration } from 'https://cdn.jsdelivr.net/npm/luxon@3.5/+esm';
 import WaveSurfer from 'https://cdn.jsdelivr.net/npm/wavesurfer.js@7.9.1/dist/wavesurfer.esm.js';
 import WaveSurferSpectrogram from 'https://cdn.jsdelivr.net/npm/wavesurfer.js@7.9.1/dist/plugins/spectrogram.esm.js';
@@ -22,6 +23,7 @@ window.addEventListener('load', async () => {
 
 document.getElementById('sec2_button_load').addEventListener('click', async () => {
   await sec2_functions();
+  console.log(howler);
 })
 
 async function sec1_functions() {
@@ -221,7 +223,7 @@ async function sec1_functions() {
   });
 }
 
-async function sec2_functions() {
+async function sec2_functions_ws() {
   const trackInfoObj = {
     title: 'キセキヒカル',
     author: 'Aqours',
@@ -588,6 +590,308 @@ async function sec2_functions() {
   });
 
 }
+
+async function sec2_functions() {
+  const trackInfoObj = {
+    title: 'キセキヒカル',
+    author: 'Aqours',
+    bpm: 148,
+    triplets: false,
+    sRate: 48000,
+    audioFileList: {
+      inst: { path: './assets/audio/kiseki_hikaru/inst/opus/original.webm', title: 'Inst', id: 'inst' },
+      vocal_original: { path: './assets/audio/kiseki_hikaru/vocal/opus/original.webm', title: 'Original Vocals', id: 'vocal_orig' },
+      vocal_solo: [
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_takami_chika.webm', title: 'Takami Chika', id: 'chara_takami_chika' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_watanabe_you.webm', title: 'Watanabe You', id: 'chara_watanabe_you' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_sakurauchi_riko.webm', title: 'Sakurauchi Riko', id: 'chara_sakurauchi_riko' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_kunikida_hanamaru.webm', title: 'Kunikida Hanamaru', id: 'chara_kunikida_hanamaru' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_kurosawa_ruby.webm', title: 'Kurosawa Ruby', id: 'chara_kurosawa_ruby' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_tsushima_yoshiko.webm', title: 'Tsushima Yoshiko', id: 'chara_tsushima_yoshiko' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_kurosawa_dia.webm', title: 'Kurosawa Dia', id: 'chara_kurosawa_dia' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_matsuura_kanan.webm', title: 'Matsuura Kanan', id: 'chara_matsuura_kanan' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_ohara_mari.webm', title: 'Ohara Mari', id: 'chara_ohara_mari' },
+      ]
+    }
+  }
+  const buttonEl = {
+    load: document.getElementById('sec2_button_load'),
+    playPause: document.getElementById('sec2_button_playPause'),
+    stop: document.getElementById('sec2_button_stop'),
+    skipStart: document.getElementById('sec2_button_skipStart'),
+    skipEnd: document.getElementById('sec2_button_skipEnd'),
+    skipRewind: document.getElementById('sec2_button_skipRewind'),
+    skipForward: document.getElementById('sec2_button_skipForward'),
+    syncTrack: document.getElementById('sec2_button_syncTrack'),
+  };
+  const allButtonDisableChange = () => {
+    for (const button of Object.values(buttonEl)) {
+      button.disabled = true;
+    }
+  };
+  const allButtonEnableChange = () => {
+    for (const button of Object.values(buttonEl)) {
+      button.disabled = false;
+    }
+  };
+  buttonEl.load.classList.remove('d-flex');
+  buttonEl.load.classList.add('d-none');
+  document.getElementById('sec2_content').classList.remove('d-none');
+  document.getElementById('sec2_infoText_upd').innerText = 'TimePos:  --:--.--- / --:--.---\nSmplPos:  --------- / ---------\nBeat:     ---:-:-:---  / ---:-:-:---';
+  document.getElementById('sec2_infoText_upd_bigBeatDisp').innerText = '---:-:-:---';
+  const sliderTextBoxEls = {
+    timeZoom: {
+      slider: document.getElementById('sec2_audioPlayerControl_timeZoom_slider'),
+      number: document.getElementById('sec2_audioPlayerControl_timeZoom_number'),
+    },
+    volInst: {
+      slider: document.getElementById('sec2_audioPlayerControl_volume_slider_inst'),
+      number: document.getElementById('sec2_audioPlayerControl_volume_number_inst'),
+    },
+    volVocal: {
+      slider: document.getElementById('sec2_audioPlayerControl_volume_slider_vocal'),
+      number: document.getElementById('sec2_audioPlayerControl_volume_number_vocal'),
+    },
+    volVocalSolo: [],
+  };
+  sliderTextBoxEls.timeZoom.number.parentElement.parentElement.parentElement.classList.add('d-none');
+  const howlInstances = [];
+  let loadedInstanceCount = 0;
+  let isFirstPlay = true;
+  const checkAllLoaded = () => {
+    loadedInstanceCount++;
+    if (loadedInstanceCount === trackInfoObj.audioFileList.vocal_solo.length + 1) {
+      console.log('Multi-track Mixing Test - ALL LOADED');
+      allButtonEnableChange();
+      document.getElementById('sec2_innerContent').classList.remove('d-none');
+      // const wsPeaks = wsInstances.map(entry => ({ id: entry.id, peaks: entry.instance.exportPeaks() }));
+      // console.log(JSON.stringify(wsPeaks));
+    }
+  };
+  await (async () => {
+    // Load all track
+    const isMobileDevice = (() => {
+      // navigator.userAgentDataをチェックしてClient Hints APIがブラウザにサポートされているか確認
+      if (navigator.userAgentData) {
+        // Client Hints APIがサポートされている場合、'mobile'に関する情報を取得
+        navigator.userAgentData.getHighEntropyValues(['mobile'])
+          .then(ua => {
+            if (ua.mobile) { return true } else { return false }
+          });
+      } else {
+        // Client Hints APIがサポートされていない場合、従来のUser-Agent文字列を使ってデバイスタイプを推測
+        console.log('User-Agent Client Hints is not supported. Falling back to traditional User-Agent string.');
+        if (/Mobi|Android/i.test(navigator.userAgent)) { return true } else { return false }
+      }
+    })();
+    for (const audioFileObj of [
+      trackInfoObj.audioFileList.inst,
+      // trackInfoObj.audioFileList.vocal_original,
+      ...trackInfoObj.audioFileList.vocal_solo
+    ]) {
+      const howl = new howler.Howl({ src: [audioFileObj.path], preload: false, autoplay: false });
+      howlInstances.push({ id: audioFileObj.id, instance: howl, soundId: null });
+      howl.on('load', () => {
+        console.log('Loaded audio: ' + audioFileObj.id);
+        checkAllLoaded();
+      });
+      howl.load();
+    }
+  })();
+  (() => {
+    trackInfoObj.audioFileList.vocal_solo.forEach(obj => {
+      document.querySelector('#sec2_control_table tbody').insertAdjacentHTML('beforeend', `
+        <tr>
+          <td class="py-0">${obj.title}</td>
+          <td class="py-0">
+            <div class="d-flex align-items-center">
+              <input
+                type="range" class="form-range flex-fill" min="0" max="100" value="100"
+                id="sec2_audioPlayerControl_volume_slider_vocal_${obj.id}"
+              />
+              <input
+                type="number" class="form-control form-control-sm w-25 ms-3 text-end font-monospace" min="0" max="100" value="100"
+                id="sec2_audioPlayerControl_volume_number_vocal_${obj.id}"
+              />
+            </div>
+          </td>
+        </tr>
+      `);
+      sliderTextBoxEls.volVocalSolo.push({
+        slider: document.getElementById(`sec2_audioPlayerControl_volume_slider_vocal_${obj.id}`),
+        number: document.getElementById(`sec2_audioPlayerControl_volume_number_vocal_${obj.id}`)
+      });
+    });
+    [
+      sliderTextBoxEls.volInst,
+      sliderTextBoxEls.volVocal,
+      ...sliderTextBoxEls.volVocalSolo
+    ].forEach(obj => {
+      obj.slider.addEventListener('input', () => { obj.number.value = obj.slider.value });
+      obj.number.addEventListener('input', () => { obj.slider.value = obj.number.value });
+    });
+    const volumeCompensateFunc = () => {
+      const volumeMasterInst = sliderTextBoxEls.volInst.number.value / 100;
+      const volumeMasterVocal = sliderTextBoxEls.volVocal.number.value / 100;
+      const volumeTrackVocalArray = sliderTextBoxEls.volVocalSolo.map(el => ({
+        id: el.number.id.replace('sec2_audioPlayerControl_volume_number_vocal_', ''),
+        volume: el.number.value / 100
+      }));
+      const volumeTrackVocalNormArray = (() => {
+        // 振幅の二乗和を計算
+        let sumOfSquares = 0;
+        for (let i = 0; i < volumeTrackVocalArray.length; i++) {
+          sumOfSquares += volumeTrackVocalArray[i].volume * volumeTrackVocalArray[i].volume;
+        }
+        // 二乗和が0の場合（全要素が0）、入力と同じ配列を返す
+        if (sumOfSquares < 1) return volumeTrackVocalArray;
+        // スケールファクターを計算 (二乗和の平方根の逆数)
+        const scale = 1 / Math.sqrt(sumOfSquares);
+        // 各振幅値にスケールファクターを乗算して新しい配列を生成
+        return volumeTrackVocalArray.map(obj => ({ id: obj.id, volume: obj.volume * scale }));
+      })();
+      howlInstances.find(entry => entry.id === 'inst').instance.volume(volumeMasterInst);
+      volumeTrackVocalNormArray.forEach(obj => {
+        howlInstances.find(entry => entry.id === obj.id).instance.volume(obj.volume * volumeMasterVocal);
+      });
+    };
+    volumeCompensateFunc();
+    [
+      sliderTextBoxEls.volInst,
+      sliderTextBoxEls.volVocal,
+      ...sliderTextBoxEls.volVocalSolo
+    ].forEach(obj => {
+      Object.values(obj).forEach(el => {
+        el.addEventListener('input', () => {
+          volumeCompensateFunc();
+        });
+      });
+    });
+  })();
+  (() => {
+    // Initialize event listener for player control button
+    const iconEl = document.querySelector('label[for="sec2_button_playPause"]').querySelector('i');
+    document.querySelector('label[for="sec2_button_playPause"]').addEventListener('click', async () => {
+      if (buttonEl.playPause.checked) {
+        howlInstances.forEach(entry => { entry.instance.pause(entry.soundId) });
+        iconEl.classList.remove('bi-pause-fill');
+        iconEl.classList.add('bi-play-fill');
+      } else {
+        howlInstances.forEach(entry => {
+          if (isFirstPlay) {
+            const soundId = entry.instance.play();
+            entry.soundId = soundId;
+          } else {
+            entry.instance.play(entry.soundId);
+          }
+        });
+        if (isFirstPlay) {
+          await (async () => {
+            const startTime = Date.now();
+            const endTime = startTime + 1000;
+            while (Date.now() < endTime) {
+              howlInstances.forEach(entry => { entry.instance.seek(0) }); // Seek to the beginning (0%)
+              await new Promise(resolve => setTimeout(resolve, 10));
+            }
+          })();
+          isFirstPlay = false;
+        }
+        if (howlInstances.find(entry => entry.id === 'inst').instance.seek() === howlInstances.find(entry => entry.id === 'inst').instance.duration()) {
+          howlInstances.forEach(entry => { entry.instance.seek(0) });
+        }
+        infoTextUpdLooperFunc();
+        iconEl.classList.remove('bi-play-fill');
+        iconEl.classList.add('bi-pause-fill');
+      }
+    });
+    buttonEl.stop.addEventListener('click', () => {
+      howlInstances.forEach(entry => { entry.instance.stop() });
+      buttonEl.playPause.checked = false;
+      infoTextUpdFunc();
+      iconEl.classList.remove('bi-pause-fill');
+      iconEl.classList.add('bi-play-fill');
+    });
+    buttonEl.skipStart.addEventListener('click', () => {
+      howlInstances.forEach(entry => { entry.instance.seek(0) });
+      infoTextUpdFunc();
+    });
+    buttonEl.skipEnd.addEventListener('click', () => {
+      howlInstances.forEach(entry => { entry.instance.seek(entry.instance.duration()) });
+      infoTextUpdFunc();
+    });
+    buttonEl.skipRewind.addEventListener('click', () => {
+      const currentTime = howlInstances.find(entry => entry.id === 'inst').instance.seek();
+      const targetTime = currentTime - ((60 / trackInfoObj.bpm) * 4);
+      howlInstances.forEach(entry => { entry.instance.seek(targetTime) });
+      infoTextUpdFunc();
+    });
+    buttonEl.skipForward.addEventListener('click', () => {
+      const currentTime = howlInstances.find(entry => entry.id === 'inst').instance.seek();
+      const targetTime = currentTime + ((60 / trackInfoObj.bpm) * 4);
+      howlInstances.forEach(entry => { entry.instance.seek(targetTime) });
+      infoTextUpdFunc();
+    });
+    buttonEl.syncTrack.addEventListener('click', () => {
+      const targetTime = howlInstances.find(entry => entry.id === 'inst').instance.seek();
+      howlInstances.filter(entry => entry.id !== 'inst').forEach(entry => { entry.instance.seek(targetTime) });
+      infoTextUpdFunc();
+    });
+  })();
+  window.howlInstances = howlInstances;
+  const infoTextUpdFunc = async () => {
+    const fetchedDuration = howlInstances[0].instance.duration();
+    const fetchedCurrentTime = howlInstances[0].instance.seek();
+    const textCurrentTime = DateTime.fromMillis(fetchedCurrentTime * 1000).toFormat('mm:ss.SSS');
+    const textDuration = DateTime.fromMillis(fetchedDuration * 1000).toFormat('mm:ss.SSS');
+    const trackBpm = trackInfoObj.bpm;
+    const isTriplets = trackInfoObj.triplets;
+    const trackSampleRate = trackInfoObj.sRate;
+    const barBeatTickObj = mathUtils.calculateBarBeatTick(fetchedCurrentTime, trackBpm, 4, isTriplets);
+    const barBeatTickObjDur = mathUtils.calculateBarBeatTick(fetchedDuration, trackBpm, 4, isTriplets);
+    const trackLatencyMs = await (async () => {
+      const targetEntry = howlInstances.find(entry => entry.id === 'inst');
+      // 全インスタンスの計測を非同期で開始
+      const measurementPromises = howlInstances.map(entry =>
+        new Promise(resolve => setTimeout(() => resolve(entry.instance.seek()), 0))
+      );
+      // 全結果を同時取得
+      const results = await Promise.all(measurementPromises);
+      const targetTime = results[howlInstances.indexOf(targetEntry)];
+      // レイテンシ計算
+      const latencyArray = results.map(t => (t - targetTime) * 1000);
+      const maxLatency = Math.abs(mathUtils.arrayMaxAbsolute(latencyArray));
+      return maxLatency;
+    })();
+    document.getElementById('sec2_infoText_upd').innerText = [
+      `TimePos:  ${textCurrentTime} / ${textDuration}`,
+      `SmplPos:  ${String(Math.round(fetchedCurrentTime * trackSampleRate)).padStart(9, ' ')} / ${String(Math.round(fetchedDuration * trackSampleRate)).padStart(9, ' ')} @ ${trackSampleRate} Hz`,
+      `Beat:     ` + `${String(barBeatTickObj.bars).padStart(3, '0')}:${barBeatTickObj.beats}:${barBeatTickObj.beatsQuarter}:${String(barBeatTickObj.ticksQuarter).padStart(3, '0')}${barBeatTickObj.beatsQuarter - 1 === 0 && howlInstances[0].instance.playing() ? '.' : ' '} / ` + `${String(barBeatTickObjDur.bars).padStart(3, '0')}:${barBeatTickObjDur.beats}:${barBeatTickObjDur.beatsQuarter}:${String(barBeatTickObjDur.ticksQuarter).padStart(3, '0')} ` + `(${trackBpm} bpm)`,
+      `Latency:  ` + String(Math.ceil(trackLatencyMs)).padStart(9, ' ') + ' ms' + (trackLatencyMs > 15 ? ' [UNSTABLE]' : ''),
+      // `BeatDisp: ${(() => {
+      //   const barLength = Math.floor((infoTextUpd_fitCharCount - 3) / 4);
+      //   return new Array(barBeatTickObj.beats).fill('█'.repeat(barLength)).join(' ');
+      // })()}`,
+      // `TickDisp: ${'█'.repeat(Math.ceil(infoTextUpd_fitCharCount * (barBeatTickObj.ticks / 1000)))}`
+    ].join('\n');
+    if (trackLatencyMs > 15) {
+      console.warn('Track latency > 15. Sync triggered.');
+      (() => {
+        const targetTime = howlInstances.find(entry => entry.id === 'inst').instance.seek();
+        howlInstances.filter(entry => entry.id !== 'inst').forEach(entry => { entry.instance.seek(targetTime) });
+      })();
+    }
+    document.getElementById('sec2_infoText_upd_bigBeatDisp').innerText = `${String(barBeatTickObj.bars).padStart(3, '0')}:${barBeatTickObj.beats}:${barBeatTickObj.beatsQuarter}:${String(barBeatTickObj.ticksQuarter).padStart(3, '0')}${barBeatTickObj.beatsQuarter - 1 === 0 && howlInstances[0].instance.playing() ? '.' : ''}`
+  };
+  const infoTextUpdLooperFunc = async () => {
+    while (howlInstances[0].instance.playing()) {
+      await infoTextUpdFunc();
+      if (!howlInstances[0].instance.playing()) break;
+      await new Promise(resolve => setTimeout(resolve, 1));
+    }
+  };
+
+}
+
 
 function calculateCharactersFit(element) {
   // 要素の横幅を取得
