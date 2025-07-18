@@ -602,15 +602,15 @@ async function sec2_functions() {
       inst: { path: './assets/audio/kiseki_hikaru/inst/opus/original.webm', title: 'Inst', id: 'inst' },
       vocal_original: { path: './assets/audio/kiseki_hikaru/vocal/opus/original.webm', title: 'Original Vocals', id: 'vocal_orig' },
       vocal_solo: [
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_takami_chika.webm', title: 'Takami Chika', id: 'chara_takami_chika' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_watanabe_you.webm', title: 'Watanabe You', id: 'chara_watanabe_you' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_sakurauchi_riko.webm', title: 'Sakurauchi Riko', id: 'chara_sakurauchi_riko' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_kunikida_hanamaru.webm', title: 'Kunikida Hanamaru', id: 'chara_kunikida_hanamaru' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_kurosawa_ruby.webm', title: 'Kurosawa Ruby', id: 'chara_kurosawa_ruby' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_tsushima_yoshiko.webm', title: 'Tsushima Yoshiko', id: 'chara_tsushima_yoshiko' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_kurosawa_dia.webm', title: 'Kurosawa Dia', id: 'chara_kurosawa_dia' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_matsuura_kanan.webm', title: 'Matsuura Kanan', id: 'chara_matsuura_kanan' },
-        { path: './assets/audio/kiseki_hikaru/vocal/opus/chara_ohara_mari.webm', title: 'Ohara Mari', id: 'chara_ohara_mari' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_takami_chika.webm', title: 'Takami Chika', id: 'chara_takami_chika' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_watanabe_you.webm', title: 'Watanabe You', id: 'chara_watanabe_you' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_sakurauchi_riko.webm', title: 'Sakurauchi Riko', id: 'chara_sakurauchi_riko' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_kunikida_hanamaru.webm', title: 'Kunikida Hanamaru', id: 'chara_kunikida_hanamaru' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_kurosawa_ruby.webm', title: 'Kurosawa Ruby', id: 'chara_kurosawa_ruby' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_tsushima_yoshiko.webm', title: 'Tsushima Yoshiko', id: 'chara_tsushima_yoshiko' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_kurosawa_dia.webm', title: 'Kurosawa Dia', id: 'chara_kurosawa_dia' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_matsuura_kanan.webm', title: 'Matsuura Kanan', id: 'chara_matsuura_kanan' },
+        { path: './assets/audio/kiseki_hikaru/vocal/opus_lq/chara_ohara_mari.webm', title: 'Ohara Mari', id: 'chara_ohara_mari' },
       ]
     }
   }
