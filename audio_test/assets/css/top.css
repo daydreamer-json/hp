@@ -24,13 +24,19 @@ tt {
 }
 
 #sec1_infoText_upd_bigBeatDisp,
-#sec2_infoText_upd_bigBeatDisp {
+#sec2_infoText_upd_bigBeatDisp,
+#sec3_infoText_upd_bigBeatDisp {
   font-family: 'DSEG14-Classic', var(--main-font-monospace) !important;
 }
 
 #sec2_control_table .form-control-sm {
   min-height: 0 !important;
   padding: 0.125rem 0.25rem !important;
+}
+
+#sec3_progressbar_load {
+  --bs-progress-bar-transition: none !important;
+  height: 1.5rem;
 }
 
 .user-drag-none {

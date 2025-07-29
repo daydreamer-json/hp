@@ -141,7 +141,11 @@
       </div>
       <hr class="my-3" />
       <h2>Multi-track Mixing Test</h2>
-      <p>This is description.</p>
+      <p>
+        This is an experiment using Howler.js to play multiple audio files simultaneously and adjust the volume balance.
+        A coefficient is automatically applied according to the total volume (amplitude) to prevent sound distortion. It
+        also calculates beat information.
+      </p>
       <div id="sec2" class="card card-body">
         <button id="sec2_button_load" class="btn btn-primary d-flex align-items-center justify-content-center">
           <span><i class="bi bi-box-arrow-in-down fs-4 me-1"></i></span>Load
@@ -284,6 +288,106 @@
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+      <hr class="my-3" />
+      <h2>Bitrate Compare Test</h2>
+      <p>This is description.</p>
+      <div id="sec3" class="card card-body">
+        <div id="sec3_loadSection" class="align-items-center justify-content-center">
+          <button
+            id="sec3_button_load"
+            class="btn btn-primary d-flex align-items-center justify-content-center w-100 my-1"
+          >
+            <span><i class="bi bi-box-arrow-in-down fs-4 me-1"></i></span>Load
+          </button>
+          <div class="progress my-1 fs-5 d-none" role="progressbar" id="sec3_progressbar_load">
+            <div
+              class="progress-bar progress-bar-striped progress-bar-animated overflow-visible"
+              style="width: 0"
+            ></div>
+          </div>
+        </div>
+        <div id="sec3_content" class="d-none">
+          <table class="table table-sm align-middle mb-0">
+            <tbody>
+              <tr>
+                <td colspan="2">
+                  <pre class="my-0 fs-1 fst-italic text-center" id="sec3_infoText_upd_bigBeatDisp">&nbsp;</pre>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <pre class="my-0"><code id="sec3_infoText_upd">&nbsp;</code></pre>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table id="sec3_control_table" class="table table-sm align-middle">
+            <tbody>
+              <tr>
+                <td colspan="2"><select class="form-select" id="sec3_audioSourceSelectList"></select></td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <div id="sec3_audioPlayerControlDiv">
+                    <input class="btn-check" type="checkbox" id="sec3_button_playPause" disabled />
+                    <label for="sec3_button_playPause" class="btn btn-outline-primary align-items-center align-middle">
+                      <i class="bi bi-play-fill fs-4"></i>
+                    </label>
+                    <button id="sec3_button_stop" class="btn btn-primary align-items-center align-middle" disabled>
+                      <i class="bi bi-stop-fill fs-4"></i>
+                    </button>
+                    <button id="sec3_button_skipStart" class="btn btn-primary align-items-center align-middle" disabled>
+                      <i class="bi bi-skip-start-fill fs-4"></i>
+                    </button>
+                    <button id="sec3_button_skipEnd" class="btn btn-primary align-items-center align-middle" disabled>
+                      <i class="bi bi-skip-end-fill fs-4"></i>
+                    </button>
+                    <button
+                      id="sec3_button_skipRewind"
+                      class="btn btn-primary align-items-center align-middle"
+                      disabled
+                    >
+                      <i class="bi bi-rewind-fill fs-4"></i>
+                    </button>
+                    <button
+                      id="sec3_button_skipForward"
+                      class="btn btn-primary align-items-center align-middle"
+                      disabled
+                    >
+                      <i class="bi bi-fast-forward-fill fs-4"></i>
+                    </button>
+                    <button id="sec3_button_syncTrack" class="btn btn-primary align-items-center align-middle" disabled>
+                      <span class="fs-4">Sync</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Quality</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <input
+                      type="range"
+                      class="form-range flex-fill"
+                      min="0"
+                      max="0"
+                      value="0"
+                      id="sec3_audioPlayerControl_quality_slider"
+                    />
+                    <input
+                      type="text"
+                      class="form-control form-control-sm w-25 ms-3 text-end font-monospace py-0 fs-6"
+                      id="sec3_audioPlayerControl_quality_number"
+                      disabled
+                      readonly
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <hr />

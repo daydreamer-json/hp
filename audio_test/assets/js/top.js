@@ -23,7 +23,10 @@ window.addEventListener('load', async () => {
 
 document.getElementById('sec2_button_load').addEventListener('click', async () => {
   await sec2_functions();
-  console.log(howler);
+});
+
+document.getElementById('sec3_button_load').addEventListener('click', async () => {
+  await sec3_functions();
 })
 
 async function sec1_functions() {
@@ -624,16 +627,8 @@ async function sec2_functions() {
     skipForward: document.getElementById('sec2_button_skipForward'),
     syncTrack: document.getElementById('sec2_button_syncTrack'),
   };
-  const allButtonDisableChange = () => {
-    for (const button of Object.values(buttonEl)) {
-      button.disabled = true;
-    }
-  };
-  const allButtonEnableChange = () => {
-    for (const button of Object.values(buttonEl)) {
-      button.disabled = false;
-    }
-  };
+  const allButtonDisableChange = () => { for (const button of Object.values(buttonEl)) { button.disabled = true } };
+  const allButtonEnableChange = () => { for (const button of Object.values(buttonEl)) { button.disabled = false } };
   buttonEl.load.classList.remove('d-flex');
   buttonEl.load.classList.add('d-none');
   document.getElementById('sec2_content').classList.remove('d-none');
@@ -670,20 +665,6 @@ async function sec2_functions() {
   };
   await (async () => {
     // Load all track
-    const isMobileDevice = (() => {
-      // navigator.userAgentDataをチェックしてClient Hints APIがブラウザにサポートされているか確認
-      if (navigator.userAgentData) {
-        // Client Hints APIがサポートされている場合、'mobile'に関する情報を取得
-        navigator.userAgentData.getHighEntropyValues(['mobile'])
-          .then(ua => {
-            if (ua.mobile) { return true } else { return false }
-          });
-      } else {
-        // Client Hints APIがサポートされていない場合、従来のUser-Agent文字列を使ってデバイスタイプを推測
-        console.log('User-Agent Client Hints is not supported. Falling back to traditional User-Agent string.');
-        if (/Mobi|Android/i.test(navigator.userAgent)) { return true } else { return false }
-      }
-    })();
     for (const audioFileObj of [
       trackInfoObj.audioFileList.inst,
       // trackInfoObj.audioFileList.vocal_original,
@@ -786,14 +767,14 @@ async function sec2_functions() {
           }
         });
         if (isFirstPlay) {
-          await (async () => {
-            const startTime = Date.now();
-            const endTime = startTime + 1000;
-            while (Date.now() < endTime) {
-              howlInstances.forEach(entry => { entry.instance.seek(0) }); // Seek to the beginning (0%)
-              await new Promise(resolve => setTimeout(resolve, 10));
-            }
-          })();
+          // await (async () => {
+          //   const startTime = Date.now();
+          //   const endTime = startTime + 1000;
+          //   while (Date.now() < endTime) {
+          //     howlInstances.forEach(entry => { entry.instance.seek(0) }); // Seek to the beginning (0%)
+          //     await new Promise(resolve => setTimeout(resolve, 10));
+          //   }
+          // })();
           isFirstPlay = false;
         }
         if (howlInstances.find(entry => entry.id === 'inst').instance.seek() === howlInstances.find(entry => entry.id === 'inst').instance.duration()) {
@@ -866,7 +847,7 @@ async function sec2_functions() {
       `TimePos:  ${textCurrentTime} / ${textDuration}`,
       `SmplPos:  ${String(Math.round(fetchedCurrentTime * trackSampleRate)).padStart(9, ' ')} / ${String(Math.round(fetchedDuration * trackSampleRate)).padStart(9, ' ')} @ ${trackSampleRate} Hz`,
       `Beat:     ` + `${String(barBeatTickObj.bars).padStart(3, '0')}:${barBeatTickObj.beats}:${barBeatTickObj.beatsQuarter}:${String(barBeatTickObj.ticksQuarter).padStart(3, '0')}${barBeatTickObj.beatsQuarter - 1 === 0 && howlInstances[0].instance.playing() ? '.' : ' '} / ` + `${String(barBeatTickObjDur.bars).padStart(3, '0')}:${barBeatTickObjDur.beats}:${barBeatTickObjDur.beatsQuarter}:${String(barBeatTickObjDur.ticksQuarter).padStart(3, '0')} ` + `(${trackBpm} bpm)`,
-      `Latency:  ` + String(Math.ceil(trackLatencyMs)).padStart(9, ' ') + ' ms' + (trackLatencyMs > 15 ? ' [UNSTABLE]' : ''),
+      `Latency:  ` + String(mathUtils.rounder('ceil', trackLatencyMs, 3).padded).padStart(9, ' ') + ' ms' + (trackLatencyMs > 15 ? ' [UNSTABLE]' : ''),
       // `BeatDisp: ${(() => {
       //   const barLength = Math.floor((infoTextUpd_fitCharCount - 3) / 4);
       //   return new Array(barBeatTickObj.beats).fill('█'.repeat(barLength)).join(' ');
@@ -892,6 +873,265 @@ async function sec2_functions() {
 
 }
 
+async function sec3_functions() {
+  const trackInfoList = [
+    {
+      title: 'Flirting With June',
+      author: 'Les Gordon',
+      // bpm: 144,
+      triplets: false,
+      sRate: 48000,
+      mainTargetCodec: 'opus',
+      audioFileList: [
+        ...(() => {
+          const bitrateList = [6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 128, 192];
+          const sizeList = [173144, 206349, 299957, 390230, 527212, 626907, 812055, 999570, 1188100, 1378430, 1559293, 1938252, 2310997, 3048950, 4475237];
+          return bitrateList.map((bitrate, i) => ({
+            path: `./assets/audio/encode_compare/flirting_with_june/opus_${bitrate}`,
+            orig: false, ext: 'webm', codec: 'opus', mime: 'audio/webm; codecs=opus', bitrate: bitrate * 1000, size: sizeList[i]
+          }));
+        })(),
+        { path: './assets/audio/encode_compare/flirting_with_june/original', orig: true, ext: 'flac', codec: 'flac', mime: 'audio/flac', bitrate: 1811535, size: 36230866 },
+      ]
+    },
+    {
+      title: 'Winding Through Avidya',
+      author: 'HOYO-MiX',
+      // bpm: 144,
+      triplets: false,
+      sRate: 48000,
+      mainTargetCodec: 'opus',
+      audioFileList: [
+        ...(() => {
+          const bitrateList = [6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 128, 192];
+          const sizeList = [132207, 162226, 229183, 296406, 391285, 462215, 593715, 726585, 863622, 1008258, 1145450, 1425323, 1695927, 2227312, 3260381];
+          return bitrateList.map((bitrate, i) => ({
+            path: `./assets/audio/encode_compare/winding_through_avidya/opus_${bitrate}`,
+            orig: false, ext: 'webm', codec: 'opus', mime: 'audio/webm; codecs=opus', bitrate: bitrate * 1000, size: sizeList[i]
+          }));
+        })(),
+        { path: './assets/audio/encode_compare/winding_through_avidya/original', orig: true, ext: 'flac', codec: 'flac', mime: 'audio/flac', bitrate: 1579776, size: 25284693 },
+      ]
+    }
+  ];
+  let currentTrackIndex = 0;
+  (() => {
+    const selectFormEl = document.getElementById('sec3_audioSourceSelectList');
+    const optionElArray = [];
+    trackInfoList.forEach((trackInfoEntry, index) => {
+      const optionEl = document.createElement('option');
+      optionEl.value = index;
+      optionEl.text = `${trackInfoEntry.title} (${trackInfoEntry.mainTargetCodec})`;
+      optionElArray.push(optionEl)
+    });
+    optionElArray[0].selected = true;
+    selectFormEl.append(...optionElArray);
+    currentTrackIndex = parseInt(document.getElementById('sec3_audioSourceSelectList').value);
+  })();
+  const buttonEl = {
+    load: document.getElementById('sec3_button_load'),
+    playPause: document.getElementById('sec3_button_playPause'),
+    stop: document.getElementById('sec3_button_stop'),
+    skipStart: document.getElementById('sec3_button_skipStart'),
+    skipEnd: document.getElementById('sec3_button_skipEnd'),
+    skipRewind: document.getElementById('sec3_button_skipRewind'),
+    skipForward: document.getElementById('sec3_button_skipForward'),
+    syncTrack: document.getElementById('sec3_button_syncTrack'),
+  };
+  const allButtonDisableChange = () => { for (const button of Object.values(buttonEl)) { button.disabled = true } };
+  const allButtonEnableChange = () => { for (const button of Object.values(buttonEl)) { button.disabled = false } };
+  buttonEl.load.classList.remove('d-flex');
+  buttonEl.load.classList.add('d-none');
+  document.getElementById('sec3_progressbar_load').classList.remove('d-none');
+  const howlInstances = [];
+  let loadedInstanceCount = 0;
+  let isFirstPlay = true;
+  let totalDownloadedBytesCount = 0;
+  let downloadedAudioBlobArray = [];
+
+  const volumeControlFunc = () => {
+    const selectedQualityValue = parseInt(document.getElementById('sec3_audioPlayerControl_quality_slider').value);
+    Object.entries(howlInstances).filter(_ => _[0] !== `${selectedQualityValue}`).map(_ => _[1]).forEach(entry => { entry.instance.volume(0) });
+    Object.entries(howlInstances).filter(_ => _[0] === `${selectedQualityValue}`).map(_ => _[1]).forEach(entry => { entry.instance.volume(1) });
+  };
+
+  document.getElementById('sec3_audioPlayerControl_quality_slider').addEventListener('input', () => {
+    const textArray = trackInfoList[currentTrackIndex].audioFileList.map(obj => `${Math.round(obj.bitrate / 1000)} kbps ${obj.codec}`);
+    document.getElementById('sec3_audioPlayerControl_quality_number').value = textArray[parseInt(document.getElementById('sec3_audioPlayerControl_quality_slider').value, 10)];
+    volumeControlFunc();
+  });
+
+  const audioDownloadFunc = async () => {
+    totalDownloadedBytesCount = 0;
+    const audioFileList = trackInfoList[currentTrackIndex].audioFileList;
+    const trackTotalFileSize = mathUtils.arrayTotal(audioFileList.map(obj => obj.size));
+    const audioDownloadInnerFunc = async (audioFileObject) => {
+      const response = await ky(`${audioFileObject.path}.${audioFileObject.ext}`, { method: 'get', timeout: false });
+      const reader = response.body.getReader();
+      const chunks = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        totalDownloadedBytesCount += value.length;
+        document.querySelector('#sec3_progressbar_load div').style.width = `${(totalDownloadedBytesCount / trackTotalFileSize) * 100}%`;
+        document.querySelector('#sec3_progressbar_load div').innerText = `${Math.floor(totalDownloadedBytesCount / 1024).toLocaleString().padStart(6, ' ')} KiB / ${Math.ceil(trackTotalFileSize / 1024).toLocaleString().padStart(6, ' ')} KiB`
+        chunks.push(value);
+      }
+      return new Blob(chunks, { type: audioFileObject.mime });
+    };
+    const downloadedBlobs = await Promise.all(
+      audioFileList.map(audioFileObject => audioDownloadInnerFunc(audioFileObject))
+    );
+    return downloadedBlobs;
+  };
+  downloadedAudioBlobArray = await audioDownloadFunc();
+  console.log(downloadedAudioBlobArray);
+  const checkAllLoaded = () => {
+    loadedInstanceCount++;
+    document.querySelector('#sec3_progressbar_load div').style.width = `${(loadedInstanceCount / trackInfoList[currentTrackIndex].audioFileList.length) * 100}%`;
+    document.querySelector('#sec3_progressbar_load div').innerText = 'Initializing audio engine ...';
+    if (loadedInstanceCount === trackInfoList[currentTrackIndex].audioFileList.length) {
+      console.log('Bitrate Compare Test - ALL LOADED');
+      allButtonEnableChange();
+      document.getElementById('sec3_audioPlayerControl_quality_slider').max = trackInfoList[currentTrackIndex].audioFileList.length - 1;
+      document.getElementById('sec3_audioPlayerControl_quality_slider').value = 0;
+      document.getElementById('sec3_audioPlayerControl_quality_slider').dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+      document.getElementById('sec3_loadSection').classList.add('d-none');
+      document.getElementById('sec3_content').classList.remove('d-none');
+      console.log(howlInstances);
+    }
+  };
+  await (async () => {
+    // Load all audio variant
+    for (const [index, audioBlob] of Object.entries(downloadedAudioBlobArray)) {
+      const blobUrl = URL.createObjectURL(audioBlob);
+      const audioFileObj = trackInfoList[currentTrackIndex].audioFileList[index]
+      const howl = new howler.Howl({ src: [blobUrl], preload: false, autoplay: false, format: audioFileObj.codec });
+      howlInstances.push({ instance: howl, soundId: null });
+      howl.on('load', () => {
+        console.log('Loaded audio: ' + `${audioFileObj.codec} (${audioFileObj.ext}), ${Math.round(audioFileObj.bitrate / 1000)} kbps`);
+        URL.revokeObjectURL(blobUrl);
+        checkAllLoaded();
+      });
+      howl.load();
+    }
+  })();
+
+  document.getElementById('sec3_infoText_upd').innerText = 'TimePos:  --:--.--- / --:--.---\nSmplPos:  --------- / ---------';
+  document.getElementById('sec3_infoText_upd_bigBeatDisp').innerText = '--:--.---';
+
+  (() => {
+    // Initialize event listener for player control button
+    const iconEl = document.querySelector('label[for="sec3_button_playPause"]').querySelector('i');
+    document.querySelector('label[for="sec3_button_playPause"]').addEventListener('click', async () => {
+      if (buttonEl.playPause.checked) {
+        howlInstances.forEach(entry => { entry.instance.pause(entry.soundId) });
+        iconEl.classList.remove('bi-pause-fill');
+        iconEl.classList.add('bi-play-fill');
+      } else {
+        howlInstances.forEach(entry => {
+          if (isFirstPlay) {
+            const soundId = entry.instance.play();
+            entry.soundId = soundId;
+          } else {
+            entry.instance.play(entry.soundId);
+          }
+        });
+        if (isFirstPlay) {
+          // await (async () => {
+          //   const startTime = Date.now();
+          //   const endTime = startTime + 1000;
+          //   while (Date.now() < endTime) {
+          //     howlInstances.forEach(entry => { entry.instance.seek(0) }); // Seek to the beginning (0%)
+          //     await new Promise(resolve => setTimeout(resolve, 10));
+          //   }
+          // })();
+          isFirstPlay = false;
+        }
+        if (howlInstances[0].instance.seek() === howlInstances[0].instance.duration()) {
+          howlInstances.forEach(entry => { entry.instance.seek(0) });
+        }
+        infoTextUpdLooperFunc();
+        iconEl.classList.remove('bi-play-fill');
+        iconEl.classList.add('bi-pause-fill');
+      }
+    });
+    buttonEl.stop.addEventListener('click', () => {
+      howlInstances.forEach(entry => { entry.instance.stop() });
+      buttonEl.playPause.checked = false;
+      infoTextUpdFunc();
+      iconEl.classList.remove('bi-pause-fill');
+      iconEl.classList.add('bi-play-fill');
+    });
+    buttonEl.skipStart.addEventListener('click', () => {
+      howlInstances.forEach(entry => { entry.instance.seek(0) });
+      infoTextUpdFunc();
+    });
+    buttonEl.skipEnd.addEventListener('click', () => {
+      howlInstances.forEach(entry => { entry.instance.seek(entry.instance.duration()) });
+      infoTextUpdFunc();
+    });
+    buttonEl.skipRewind.addEventListener('click', () => {
+      const currentTime = howlInstances[0].instance.seek();
+      const targetTime = currentTime - 2;
+      howlInstances.forEach(entry => { entry.instance.seek(targetTime) });
+      infoTextUpdFunc();
+    });
+    buttonEl.skipForward.addEventListener('click', () => {
+      const currentTime = howlInstances[0].instance.seek();
+      const targetTime = currentTime + 2;
+      howlInstances.forEach(entry => { entry.instance.seek(targetTime) });
+      infoTextUpdFunc();
+    });
+    buttonEl.syncTrack.addEventListener('click', () => {
+      const targetTime = howlInstances[0].instance.seek();
+      Object.entries(howlInstances).filter(_ => _[0] !== '0').map(_ => _[1]).forEach(entry => { entry.instance.seek(targetTime) });
+      infoTextUpdFunc();
+    });
+  })();
+  window.howlInstances = howlInstances;
+  const infoTextUpdFunc = async () => {
+    const fetchedDuration = howlInstances[0].instance.duration();
+    const fetchedCurrentTime = howlInstances[0].instance.seek();
+    const textCurrentTime = DateTime.fromMillis(fetchedCurrentTime * 1000).toFormat('mm:ss.SSS');
+    const textDuration = DateTime.fromMillis(fetchedDuration * 1000).toFormat('mm:ss.SSS');
+    const trackSampleRate = trackInfoList[currentTrackIndex].sRate;
+    const trackLatencyMs = await (async () => {
+      const targetEntry = howlInstances[0];
+      // 全インスタンスの計測を非同期で開始
+      const measurementPromises = howlInstances.map(entry =>
+        new Promise(resolve => setTimeout(() => resolve(entry.instance.seek()), 0))
+      );
+      // 全結果を同時取得
+      const results = await Promise.all(measurementPromises);
+      const targetTime = results[howlInstances.indexOf(targetEntry)];
+      // レイテンシ計算
+      const latencyArray = results.map(t => (t - targetTime) * 1000);
+      const maxLatency = Math.abs(mathUtils.arrayMaxAbsolute(latencyArray));
+      return maxLatency;
+    })();
+    document.getElementById('sec3_infoText_upd').innerText = [
+      `TimePos:  ${textCurrentTime} / ${textDuration}`,
+      `SmplPos:  ${String(Math.round(fetchedCurrentTime * trackSampleRate)).padStart(9, ' ')} / ${String(Math.round(fetchedDuration * trackSampleRate)).padStart(9, ' ')} @ ${trackSampleRate} Hz`,
+      `Latency:  ` + String(mathUtils.rounder('ceil', trackLatencyMs, 3).padded).padStart(9, ' ') + ' ms' + (trackLatencyMs > 15 ? ' [UNSTABLE]' : ''),
+    ].join('\n');
+    if (trackLatencyMs > 15) {
+      console.warn('Track latency > 15. Sync triggered.');
+      (() => {
+        const targetTime = howlInstances[0].instance.seek();
+        Object.entries(howlInstances).filter(_ => _[0] !== '0').map(_ => _[1]).forEach(entry => { entry.instance.seek(targetTime) });
+      })();
+    }
+    document.getElementById('sec3_infoText_upd_bigBeatDisp').innerText = `${textCurrentTime}`;
+  };
+  const infoTextUpdLooperFunc = async () => {
+    while (howlInstances[0].instance.playing()) {
+      await infoTextUpdFunc();
+      if (!howlInstances[0].instance.playing()) break;
+      await new Promise(resolve => setTimeout(resolve, 1));
+    }
+  };
+}
 
 function calculateCharactersFit(element) {
   // 要素の横幅を取得
