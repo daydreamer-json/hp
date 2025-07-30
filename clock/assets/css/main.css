@@ -66,6 +66,18 @@ body.menu-open .clock {
   -ms-user-select: none;
 }
 
+/* PiP時計用の追加スタイル */
+.pip-clock {
+  font-size: 13vw !important;
+}
+
+.clock.sizeOverride-showMs {
+  font-size: 12vw !important;
+}
+.pip-clock.sizeOverride-showMs {
+  font-size: 11vw !important;
+}
+
 /* Settings Button */
 .settings-btn {
   position: fixed;
@@ -88,6 +100,11 @@ body.menu-open .clock {
   transition: all 0.3s ease, opacity 0.3s ease;
   transform-origin: center center;
   opacity: 0;
+}
+
+/* PiPボタンは設定ボタンの左側に配置 */
+#pip-btn {
+  right: 70px; /* 設定ボタンとの間隔を確保 */
 }
 
 .settings-btn.visible {

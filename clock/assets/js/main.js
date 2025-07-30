@@ -4,9 +4,11 @@ let glowPulseEnabled = true;
 let settingsBtnVisible = false;
 let settingsBtnTimeout;
 let glowPulseInterval;
+let pipWindow = null; // PiPウィンドウ参照用
 
 // 要素の取得
 const settingsBtn = document.getElementById('settings-btn');
+const pipBtn = document.getElementById('pip-btn'); // PiPボタン追加
 const optionsMenu = document.getElementById('options-menu');
 const millisecToggle = document.getElementById('millisec-toggle');
 const glowPulseToggle = document.getElementById('glow-pulse-toggle');
@@ -67,13 +69,17 @@ function updateGlowEffect() {
     `0 0 40px rgba(0, 255, 255, ${opacity})`;
 }
 
-// 設定ボタンの表示（フェードイン）
+// 設定ボタンとPiPボタンの表示（フェードイン）
 function showSettingsButton() {
   if (settingsBtnVisible) return;
 
-  settingsBtn.classList.remove('fade-out');
-  settingsBtn.classList.add('fade-in');
-  settingsBtn.style.display = 'flex';
+  // 両ボタンを表示
+  [settingsBtn, pipBtn].forEach(btn => {
+    btn.classList.remove('fade-out');
+    btn.classList.add('fade-in');
+    btn.style.display = 'flex';
+  });
+
   settingsBtnVisible = true;
 
   // 3秒後にボタンを非表示
@@ -81,17 +87,22 @@ function showSettingsButton() {
   settingsBtnTimeout = setTimeout(hideSettingsButton, 3000);
 }
 
-// 設定ボタンの非表示（フェードアウト）
+// 設定ボタンとPiPボタンの非表示（フェードアウト）
 function hideSettingsButton() {
   if (!settingsBtnVisible || optionsMenu.classList.contains('show')) return;
 
-  settingsBtn.classList.remove('fade-in');
-  settingsBtn.classList.add('fade-out');
+  // 両ボタンを非表示
+  [settingsBtn, pipBtn].forEach(btn => {
+    btn.classList.remove('fade-in');
+    btn.classList.add('fade-out');
+  });
 
   // アニメーション終了後に非表示
   setTimeout(() => {
     if (settingsBtn.classList.contains('fade-out')) {
-      settingsBtn.style.display = 'none';
+      [settingsBtn, pipBtn].forEach(btn => {
+        btn.style.display = 'none';
+      });
       settingsBtnVisible = false;
     }
   }, 300); // CSSのトランジション時間に合わせる
@@ -111,6 +122,74 @@ function toggleOptionsMenu() {
     optionsMenu.classList.add('show');
     document.body.classList.add('menu-open');
     showSettingsButton();
+  }
+}
+
+// PiP機能のトグル
+async function togglePiP() {
+  try {
+    // 既にPiPウィンドウが開いている場合は閉じる
+    if (pipWindow) {
+      pipWindow.close(); // ウィンドウを直接閉じる
+      pipWindow = null; // 即座にnullを設定
+      return;
+    }
+
+    // クロック要素をコピーしてPiP用に準備
+    const pipClock = clockElement.cloneNode(true);
+    pipClock.id = 'pip-clock';
+    pipClock.className = clockElement.className; // 元のクラスを適用
+    pipClock.classList.add('pip-clock'); // 追加スタイル用のクラス
+
+    // PiPウィンドウを作成（正しいAPIを使用）
+    pipWindow = await documentPictureInPicture.requestWindow({
+      width: 250,
+      height: 100
+    });
+
+    // PiPウィンドウにスタイルシートを追加
+    ['https://cdn.jsdelivr.net/npm/bootstrap@5.3/dist/css/bootstrap.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11/font/bootstrap-icons.min.css', 'https://rsms.me/inter/inter.css', 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+SC:wght@100..900&display=swap', 'https://iosevka-webfonts.github.io/iosevka/Iosevka.css', '../assets/fonts/dseg/dseg.css', './assets/css/main.css'].forEach(cssPath => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = cssPath; // メインのスタイルシートを読み込み
+      pipWindow.document.head.appendChild(link);
+    });
+
+    pipWindow.document.head.insertAdjacentHTML('afterbegin', '<meta name="viewport" content="width=device-width, initial-scale=1.0" />');
+    pipWindow.document.head.insertAdjacentHTML('beforeend', '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3/dist/js/bootstrap.min.js"></script>');
+
+    // PiPウィンドウに時計を追加
+    pipWindow.document.body.appendChild(pipClock);
+
+    // PiPウィンドウが閉じられたときの処理
+    pipWindow.addEventListener('close', () => {
+      pipWindow = null;
+      console.log('PiPウィンドウが閉じられました');
+    });
+
+    millisecToggle.addEventListener('change', () => {
+      showMilliseconds = millisecToggle.checked;
+      if (showMilliseconds) {
+        pipClock.classList.add('sizeOverride-showMs');
+      } else {
+        pipClock.classList.remove('sizeOverride-showMs');
+      }
+      updatePipClock();
+    });
+
+    // PiPウィンドウの時計も更新する（テキストとスタイル）
+    const updatePipClock = () => {
+      if (!pipWindow) return;
+      pipClock.textContent = clockElement.textContent;
+      pipClock.style.textShadow = clockElement.style.textShadow; // 発光エフェクトを同期
+    };
+
+    // メインの時計更新と同期
+    setInterval(updatePipClock, 10);
+
+  } catch (error) {
+    console.error('PiPエラー:', error);
+    alert('PiP機能の使用中にエラーが発生しました: ' + error.message);
   }
 }
 
@@ -134,6 +213,12 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleOptionsMenu();
   });
 
+  // PiPボタンのクリックイベント
+  pipBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePiP();
+  });
+
   // メニュー外のクリックでメニューを閉じる
   document.addEventListener('click', (e) => {
     if (optionsMenu.classList.contains('show') &&
@@ -148,9 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
   millisecToggle.addEventListener('change', () => {
     showMilliseconds = millisecToggle.checked;
     if (showMilliseconds) {
-      clockElement.style.fontSize = '12vw';
+      clockElement.classList.add('sizeOverride-showMs');
     } else {
-      clockElement.style.fontSize = '14vw';
+      clockElement.classList.remove('sizeOverride-showMs');
     }
     updateClock();
   });
