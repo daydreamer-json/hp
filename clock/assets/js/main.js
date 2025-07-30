@@ -3,6 +3,7 @@ let showMilliseconds = false;
 let frameRateMode = false; // フレームレート表記モード（true: 有効, false: 無効）
 let currentFrameRate = 24; // デフォルトのフレームレート (24, 30, 60)
 let glowPulseEnabled = true;
+let glowColor = localStorage.getItem('glowColor') || '#00ff80'; // 光彩色（デフォルトはシアン）
 let settingsBtnVisible = false;
 let settingsBtnTimeout;
 let glowPulseInterval;
@@ -46,15 +47,20 @@ function updateClock() {
 // 発光エフェクト更新関数
 function updateGlowEffect() {
   // 透明度設定 (変数化)
-  const baseOpacity = 0.5; // デフォルト透明度
+  const baseOpacity = 0.4; // デフォルト透明度
   const maxOpacity = 1.0;  // 最大透明度
+
+  // 光彩色をRGBに変換
+  const r = parseInt(glowColor.slice(1, 3), 16);
+  const g = parseInt(glowColor.slice(3, 5), 16);
+  const b = parseInt(glowColor.slice(5, 7), 16);
 
   if (!glowPulseEnabled) {
     clockElement.style.textShadow =
-      `0 0 15px rgba(255, 255, 255, ${baseOpacity}), ` +
-      `0 0 20px rgba(0, 255, 255, ${baseOpacity}), ` +
-      `0 0 35px rgba(0, 255, 255, ${baseOpacity}), ` +
-      `0 0 40px rgba(0, 255, 255, ${baseOpacity})`;
+      `0 0 15px rgba(255, 255, 255, ${baseOpacity}), ` + // 15pxは固定で白
+      `0 0 20px rgba(${r}, ${g}, ${b}, ${baseOpacity}), ` +
+      `0 0 35px rgba(${r}, ${g}, ${b}, ${baseOpacity}), ` +
+      `0 0 40px rgba(${r}, ${g}, ${b}, ${baseOpacity})`;
     return;
   }
 
@@ -62,23 +68,14 @@ function updateGlowEffect() {
   const milliseconds = now.getMilliseconds(); // 0-999
   const progress = milliseconds / 1000; // 0.0～0.999
 
-  /* 以前の実装（コメントアウトして残す）
-  if (progress < 0.8) {
-    opacity = maxOpacity - (maxOpacity - baseOpacity) * (progress / 0.8);
-  } else {
-    const phaseProgress = (progress - 0.8) / 0.2;
-    opacity = baseOpacity + (maxOpacity - baseOpacity) * phaseProgress;
-  }
-  */
-
   // 新しい実装: 線形減衰のみ
   let opacity = maxOpacity - (maxOpacity - baseOpacity) * progress;
 
   clockElement.style.textShadow =
-    `0 0 15px rgba(255, 255, 255, ${opacity}), ` +
-    `0 0 20px rgba(0, 255, 255, ${opacity}), ` +
-    `0 0 35px rgba(0, 255, 255, ${opacity}), ` +
-    `0 0 40px rgba(0, 255, 255, ${opacity})`;
+    `0 0 15px rgba(255, 255, 255, ${opacity}), ` + // 15pxは固定で白
+    `0 0 20px rgba(${r}, ${g}, ${b}, ${opacity}), ` +
+    `0 0 35px rgba(${r}, ${g}, ${b}, ${opacity}), ` +
+    `0 0 40px rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
 // 設定ボタンとPiPボタンの表示（フェードイン）
@@ -316,6 +313,21 @@ document.addEventListener('DOMContentLoaded', () => {
       updateGlowEffect(); // デフォルト状態にリセット
     }
   });
+
+  // カラーピッカーの要素を取得
+  const glowColorPicker = document.getElementById('glow-color-picker');
+
+  // カラーピッカーのイベントリスナー
+  glowColorPicker.addEventListener('input', (e) => {
+    glowColor = e.target.value;
+    localStorage.setItem('glowColor', glowColor); // 色を保存
+    updateGlowEffect(); // エフェクト更新
+  });
+
+  // 保存された色があればカラーピッカーに設定
+  if (glowColor) {
+    glowColorPicker.value = glowColor;
+  }
 
   // 初期状態で1/100秒表示を有効化
   millisecToggle.checked = showMilliseconds;
