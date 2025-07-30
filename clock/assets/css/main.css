@@ -209,3 +209,8 @@ body.menu-open .settings-btn {
   height: 16px;
   cursor: pointer;
 }
+
+/* メイン時計非表示用スタイル */
+.clock.hidden {
+  display: none;
+}

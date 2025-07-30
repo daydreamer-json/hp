@@ -135,11 +135,17 @@ async function togglePiP() {
       return;
     }
 
-    // クロック要素をコピーしてPiP用に準備
+    // クロック要素をコピーしてPiP用に準備（非表示前）
     const pipClock = clockElement.cloneNode(true);
     pipClock.id = 'pip-clock';
     pipClock.className = clockElement.className; // 元のクラスを適用
     pipClock.classList.add('pip-clock'); // 追加スタイル用のクラス
+
+    // クローンからhiddenクラスを削除（PiP時計を表示）
+    pipClock.classList.remove('hidden');
+
+    // メイン時計を非表示に（PiP作成後に実行）
+    clockElement.classList.add('hidden');
 
     // PiPウィンドウを作成（正しいAPIを使用）
     pipWindow = await documentPictureInPicture.requestWindow({
@@ -162,9 +168,21 @@ async function togglePiP() {
     pipWindow.document.body.appendChild(pipClock);
 
     // PiPウィンドウが閉じられたときの処理
-    pipWindow.addEventListener('close', () => {
+    // closeイベントの代わりにpagehideイベントを使用
+    pipWindow.addEventListener('pagehide', () => {
+      console.log('[DEBUG] PiP pagehide event triggered');
+
       pipWindow = null;
       console.log('PiPウィンドウが閉じられました');
+
+      // メイン時計を再表示
+      clockElement.classList.remove('hidden');
+      console.log('[DEBUG] Main clock visibility restored');
+    });
+
+    // 追加のデバッグ: unloadイベントも監視
+    pipWindow.addEventListener('unload', () => {
+      console.log('[DEBUG] PiP unload event triggered');
     });
 
     millisecToggle.addEventListener('change', () => {
@@ -190,6 +208,9 @@ async function togglePiP() {
   } catch (error) {
     console.error('PiPエラー:', error);
     alert('PiP機能の使用中にエラーが発生しました: ' + error.message);
+
+    // エラー発生時もメイン時計を再表示
+    clockElement.classList.remove('hidden');
   }
 }
 
