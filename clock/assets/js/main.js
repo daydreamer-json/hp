@@ -161,8 +161,8 @@ async function togglePiP() {
 
     // PiPウィンドウを作成（正しいAPIを使用）
     pipWindow = await documentPictureInPicture.requestWindow({
-      width: 250,
-      height: 100
+      width: 900,
+      height: 160
     });
 
     // PiPウィンドウにスタイルシートを追加
