@@ -1,5 +1,7 @@
 // グローバル変数
 let showMilliseconds = false;
+let frameRateMode = false; // フレームレート表記モード（true: 有効, false: 無効）
+let currentFrameRate = 24; // デフォルトのフレームレート (24, 30, 60)
 let glowPulseEnabled = true;
 let settingsBtnVisible = false;
 let settingsBtnTimeout;
@@ -22,8 +24,18 @@ function updateClock() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
 
   if (showMilliseconds) {
-    const milliseconds = String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0');
-    const timeString = `${hours}:${minutes}:${seconds}:${milliseconds}`;
+    let fractionalPart;
+
+    if (frameRateMode) {
+      // フレームレート表記
+      const frameCount = Math.floor(now.getMilliseconds() / (1000 / currentFrameRate));
+      fractionalPart = String(frameCount).padStart(2, '0');
+    } else {
+      // 通常の1/100秒表記
+      fractionalPart = String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0');
+    }
+
+    const timeString = `${hours}:${minutes}:${seconds}:${fractionalPart}`;
     clockElement.textContent = timeString;
   } else {
     const timeString = `${hours}:${minutes}:${seconds}`;
@@ -195,6 +207,22 @@ async function togglePiP() {
       updatePipClock();
     });
 
+    // 表示方式選択の変更をPiP時計にも反映 (ドロップダウン用)
+    // メインウィンドウの要素を取得
+    const mainWindowFrameRateSelect = document.getElementById('frame-rate-select');
+    if (mainWindowFrameRateSelect) {
+      mainWindowFrameRateSelect.addEventListener('change', () => {
+        const value = mainWindowFrameRateSelect.value;
+        if (value === 'normal') {
+          frameRateMode = false; // 通常表示モード
+        } else {
+          frameRateMode = true; // フレームレートモード
+          currentFrameRate = parseInt(value);
+        }
+        updatePipClock();
+      });
+    }
+
     // PiPウィンドウの時計も更新する（テキストとスタイル）
     const updatePipClock = () => {
       if (!pipWindow) return;
@@ -255,8 +283,25 @@ document.addEventListener('DOMContentLoaded', () => {
     showMilliseconds = millisecToggle.checked;
     if (showMilliseconds) {
       clockElement.classList.add('sizeOverride-showMs');
+      // 1/100秒表示が有効な時のみフレームレートオプションを表示
+      document.getElementById('frame-rate-option').style.display = 'block';
     } else {
       clockElement.classList.remove('sizeOverride-showMs');
+      // 1/100秒表示が無効ならフレームレートオプションを非表示
+      document.getElementById('frame-rate-option').style.display = 'none';
+    }
+    updateClock();
+  });
+
+  // 表示方式選択の変更イベント (ドロップダウン用)
+  const frameRateSelect = document.getElementById('frame-rate-select');
+  frameRateSelect.addEventListener('change', () => {
+    const value = frameRateSelect.value;
+    if (value === 'normal') {
+      frameRateMode = false; // 通常表示モード
+    } else {
+      frameRateMode = true; // フレームレートモード
+      currentFrameRate = parseInt(value);
     }
     updateClock();
   });
@@ -275,6 +320,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 初期状態で1/100秒表示を有効化
   millisecToggle.checked = showMilliseconds;
   glowPulseToggle.checked = glowPulseEnabled;
+
+  // 初期状態でフレームレートオプションを非表示（1/100秒表示が無効なら）
+  if (!showMilliseconds) {
+    document.getElementById('frame-rate-option').style.display = 'none';
+  }
 
   // 発光エフェクト用インターバル初期化
   setInterval(updateGlowEffect, 50);
