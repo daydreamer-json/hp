@@ -5,14 +5,14 @@ import mathUtils from './utils/mathUtils.js';
 
 export async function sec3_functions() {
   // トラック情報の定義
-  const createAudioFileList = (basePath, bitrateList, sizeList) => {
+  const createAudioFileList = (basePath, bitrateList, sizeList, originalBitrate, originalSize, fileNamePrefix, fileExt, fileCodec, fileMime) => {
     return [
       ...bitrateList.map((bitrate, i) => ({
-        path: `${basePath}/opus_${bitrate}`,
+        path: `${basePath}/${fileNamePrefix}_${bitrate}`,
         orig: false,
-        ext: 'webm',
-        codec: 'opus',
-        mime: 'audio/webm; codecs=opus',
+        ext: fileExt,
+        codec: fileCodec,
+        mime: fileMime, // 'audio/webm; codecs=opus',
         bitrate: bitrate * 1000,
         size: sizeList[i]
       })),
@@ -22,8 +22,8 @@ export async function sec3_functions() {
         ext: 'flac',
         codec: 'flac',
         mime: 'audio/flac',
-        bitrate: basePath.includes('flirting_with_june') ? 1811535 : 1579776,
-        size: basePath.includes('flirting_with_june') ? 36230866 : 25284693
+        bitrate: originalBitrate,
+        size: originalSize
       }
     ];
   };
@@ -38,7 +38,8 @@ export async function sec3_functions() {
       audioFileList: createAudioFileList(
         './assets/audio/encode_compare/flirting_with_june',
         [6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 128, 192],
-        [173144, 206349, 299957, 390230, 527212, 626907, 812055, 999570, 1188100, 1378430, 1559293, 1938252, 2310997, 3048950, 4475237]
+        [173144, 206349, 299957, 390230, 527212, 626907, 812055, 999570, 1188100, 1378430, 1559293, 1938252, 2310997, 3048950, 4475237],
+        1811535, 36230866, 'opus', 'webm', 'opus', 'audio/webm; codecs=opus'
       )
     },
     {
@@ -50,11 +51,12 @@ export async function sec3_functions() {
       audioFileList: createAudioFileList(
         './assets/audio/encode_compare/winding_through_avidya',
         [6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 128, 192],
-        [132207, 162226, 229183, 296406, 391285, 462215, 593715, 726585, 863622, 1008258, 1145450, 1425323, 1695927, 2227312, 3260381]
+        [132207, 162226, 229183, 296406, 391285, 462215, 593715, 726585, 863622, 1008258, 1145450, 1425323, 1695927, 2227312, 3260381],
+        1579776, 25284693, 'opus', 'webm', 'opus', 'audio/webm; codecs=opus'
       )
     },
     {
-      title: 'Esperanza',
+      title: 'Esperanza (Opus)',
       author: 'Mameyudoufu',
       triplets: false,
       sRate: 48000,
@@ -62,7 +64,21 @@ export async function sec3_functions() {
       audioFileList: createAudioFileList(
         './assets/audio/encode_compare/esperanza',
         [6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 128, 192],
-        [74729, 90825, 123771, 161342, 208066, 247799, 323711, 400395, 477109, 556003, 632795, 783199, 935126, 1241370, 1845556]
+        [74729, 90825, 123771, 161342, 208066, 247799, 323711, 400395, 477109, 556003, 632795, 783199, 935126, 1241370, 1845556],
+        1820381, 16227553, 'opus', 'webm', 'opus', 'audio/webm; codecs=opus'
+      )
+    },
+    {
+      title: 'Esperanza (Vorbis)',
+      author: 'Mameyudoufu',
+      triplets: false,
+      sRate: 48000,
+      mainTargetCodec: 'vorbis',
+      audioFileList: createAudioFileList(
+        './assets/audio/encode_compare/esperanza',
+        [32, 40, 48, 56, 64, 80, 96, 128, 192],
+        [74729, 90825, 123771, 161342, 208066, 247799, 323711, 400395, 477109, 556003, 632795, 783199, 935126, 1241370, 1845556],
+        1820381, 16227553, 'vorbis', 'webm', 'vorbis', 'audio/webm; codecs=vorbis'
       )
     }
   ];
