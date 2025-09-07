@@ -41,7 +41,8 @@ async function sec1_functions() {
     { path: './assets/audio/arcaea_bgm_main.webm', title: 'Arcaea Main BGM', bpm: 84 * 2, triplets: false, sRate: 48000 },
     { path: './assets/audio/beyond_the_way_sync.webm', title: 'Beyond the way', bpm: 125, triplets: false, sRate: 48000 },
     { path: './assets/audio/inflower_skydreamer_vip_loop.webm', title: 'Skydreamer VIP', bpm: 150, triplets: true, sRate: 48000 },
-    { path: './assets/audio/esperanza.webm', title: 'Esperanza', bpm: 175, triplets: true, sRate: 48000 },
+    { path: './assets/audio/esperanza.webm', title: 'Esperanza', bpm: 175, triplets: false, sRate: 48000 },
+    { path: './assets/audio/dreaming_of_me.webm', title: 'Dreaming of Me', bpm: 124, triplets: false, sRate: 48000 },
   ];
   let currentAudioFileIndex = 0;
   (() => {

@@ -69,7 +69,7 @@ export async function sec3_functions() {
       )
     },
     {
-      title: 'Esperanza (Vorbis)',
+      title: 'Esperanza (Vorbis) !UNSTABLE!',
       author: 'Mameyudoufu',
       triplets: false,
       sRate: 48000,
@@ -77,10 +77,23 @@ export async function sec3_functions() {
       audioFileList: createAudioFileList(
         './assets/audio/encode_compare/esperanza',
         [32, 40, 48, 56, 64, 80, 96, 128, 192],
-        [74729, 90825, 123771, 161342, 208066, 247799, 323711, 400395, 477109, 556003, 632795, 783199, 935126, 1241370, 1845556],
-        1820381, 16227553, 'vorbis', 'webm', 'vorbis', 'audio/webm; codecs=vorbis'
+        [335632, 385831, 480233, 528460, 644608, 826090, 1012356, 1385939, 2034505],
+        1820381, 16227553, 'vorbis', 'ogg', 'vorbis', 'audio/ogg'
       )
-    }
+    },
+    {
+      title: 'Dreaming of Me',
+      author: 'Jack Shore, Tollef',
+      triplets: false,
+      sRate: 48000,
+      mainTargetCodec: 'opus',
+      audioFileList: createAudioFileList(
+        './assets/audio/encode_compare/dreaming_of_me',
+        [6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 128, 192],
+        [200899, 239571, 316106, 411130, 547472, 647790, 842077, 1036729, 1232639, 1431935, 1625883, 2022665, 2420912, 3210653, 4768934],
+        990804, 23012161, 'opus', 'webm', 'opus', 'audio/webm; codecs=opus'
+      )
+    },
   ];
   // トラック選択の初期化
   let currentTrackIndex = 0;
