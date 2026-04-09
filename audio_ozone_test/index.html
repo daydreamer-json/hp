@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ozone 12 Zero-Latency Dry/Wet + Level Meter</title>
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #090b10;
+            --panel: #11141d;
+            --panel-border: rgba(255,255,255,0.03);
+            --accent-wet: #a259ff;
+            --accent-dry: #00e5ff;
+            --text: #f1f5f9;
+            --text-dim: #475569;
+            --text-on-accent: #000;
+        }
+
+        body {
+            margin: 0; background: var(--bg); color: var(--text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        .player-card {
+            width: 100%; max-width: 900px; background: var(--panel); padding: 35px;
+            border-radius: 24px; box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+            border: 1px solid var(--panel-border);
+            box-sizing: border-box;
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 15px; }
+        .title { font-size: 0.8rem; letter-spacing: 3px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; }
+        .time-display { font-family: 'Roboto Mono', monospace; color: var(--text-dim); font-size: 0.9rem; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 6px; white-space: nowrap; }
+
+        #waveform-container {
+            height: 200px; background: rgba(0,0,0,0.4);
+            border-radius: 16px; margin-bottom: 15px; position: relative; cursor: pointer;
+            overflow: hidden; border: 1px solid rgba(255,255,255,0.02);
+        }
+        
+        @media (max-width: 768px) {
+            .player-card { padding: 20px; border-radius: 16px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
+            #waveform-container { height: 120px; }
+            .status-overlay { font-size: 4rem !important; }
+            .central-controls { width: 100%; justify-content: space-between; gap: 10px !important; padding: 10px 20px !important; }
+            .volume-box { width: 100px !important; }
+            .play-btn { width: 50px !important; height: 50px !important; }
+            .meter-labels { padding: 0 2px 0 45px !important; font-size: 0.55rem !important; }
+        }
+
+        .waves { position: absolute; width: 100%; height: 100%; top: 0; transition: opacity 0.3s ease; z-index: 1; }
+        #wave-wet { opacity: 0; }
+        
+        .status-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em;
+            pointer-events: none; z-index: 2; transition: color 0.3s, opacity 0.3s;
+            line-height: 1; margin: 0;
+        }
+
+        /* --- Level Meter Styles --- */
+        .meter-container {
+            width: 100%; margin-bottom: 35px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        #level-meter {
+            width: 100%; height: 80px; border-radius: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: block;
+        }
+        .meter-labels {
+            width: 100%; display: flex; justify-content: space-between;
+            font-size: 0.65rem; color: var(--text-dim); margin-top: 4px; font-family: 'Roboto Mono', monospace;
+            padding: 0 2px 0 45px; box-sizing: border-box;
+        }
+
+        .controls-wrapper { display: flex; justify-content: center; margin-bottom: 35px; }
+        
+        .central-controls {
+            display: flex; align-items: center; gap: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 30px; border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .volume-box { display: flex; align-items: center; gap: 12px; width: 160px; color: var(--text-dim); }
+        input[type="range"] { flex: 1; accent-color: #fff; cursor: pointer; opacity: 0.7; transition: 0.2s; }
+        input[type="range"]:hover { opacity: 1; }
+
+        .transport-box { display: flex; align-items: center; gap: 15px; }
+        button { background: none; border: none; color: var(--text-dim); cursor: pointer; transition: 0.2s; padding: 10px; border-radius: 50%; }
+        button:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        button:active { transform: scale(0.95); }
+        
+        .play-btn { background: #fff; color: #000; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .play-btn:hover { background: #e2e8f0; color: #000; }
+
+        .switch-container { display: flex; justify-content: center; }
+        .switch {
+            background: #000; width: 100%; max-width: 320px; height: 56px; border-radius: 28px;
+            display: flex; position: relative; cursor: pointer; border: 2px solid #1a1a1a;
+            overflow: hidden;
+        }
+        .switch div {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            z-index: 2; font-weight: 600; font-size: 0.85rem; letter-spacing: 1px;
+            transition: color 0.3s, font-weight 0.3s; color: var(--text-dim); user-select: none;
+        }
+        .switch div.active { color: var(--text-on-accent); font-weight: 800; }
+        
+        .slider {
+            position: absolute; width: 50%; height: 100%;
+            border-radius: 26px; transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 1;
+        }
+
+        .loading-overlay {
+            position: absolute; inset: 0; background: var(--panel);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; border-radius: 24px; transition: 0.5s;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.05);
+            border-left-color: var(--accent-wet); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="player-card">
+    <div id="loader" class="loading-overlay">
+        <div class="spinner"></div>
+        <div id="load-status" style="color: var(--text-dim); font-size: 0.9rem;">Loading High-Res Audio...</div>
+    </div>
+
+    <div class="header">
+        <div class="title">Ozone 12 Mastering Archive</div>
+        <div id="time-display" class="time-display">00:00 / 00:00</div>
+    </div>
+
+    <div id="waveform-container">
+        <h2 id="status-overlay" class="status-overlay" style="color: rgba(0, 229, 255, 0.06);">DRY</h2>
+        <div id="wave-dry" class="waves"></div>
+        <div id="wave-wet" class="waves"></div>
+    </div>
+
+    <div class="meter-container">
+        <canvas id="level-meter" width="830" height="80"></canvas>
+        <div class="meter-labels">
+            <span>-30</span><span>-24</span><span>-18</span><span>-12</span><span>-6</span><span>0 dB</span>
+        </div>
+    </div>
+
+    <div class="controls-wrapper">
+        <div class="central-controls">
+            <div class="volume-box">
+                <i data-lucide="volume-2" size="18"></i>
+                <input type="range" id="volume-range" min="0" max="1" step="0.01" value="0.7">
+            </div>
+
+            <div class="transport-box">
+                <button onclick="audioEngine.seekRelative(-5)"><i data-lucide="rewind" size="20"></i></button>
+                <button id="play-btn" class="play-btn" onclick="audioEngine.toggle()"><i data-lucide="play" size="26"></i></button>
+                <button onclick="audioEngine.seekRelative(5)"><i data-lucide="fast-forward" size="20"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="switch-container">
+        <div class="switch" id="toggle">
+            <div id="label-dry" class="active">DRY</div>
+            <div id="label-wet">WET</div>
+            <div class="slider" id="slider" style="background: var(--accent-dry);"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Metering Constants ---
+    const METER_MIN_DB = -30;
+    const METER_MAX_DB = 0;
+    const PEAK_HOLD_TIME_SEC = 1.0;
+
+    class SyncAudioEngine {
+        constructor() {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.dryBuffer = null; this.wetBuffer = null;
+            this.dryNode = null; this.wetNode = null;
+            this.dryGain = this.ctx.createGain(); this.wetGain = this.ctx.createGain();
+            this.masterGain = this.ctx.createGain();
+            
+            this.dryGain.connect(this.masterGain); this.wetGain.connect(this.masterGain);
+            this.masterGain.connect(this.ctx.destination);
+            
+            this.masterGain.gain.value = 0.7;
+            this.startTime = 0; this.pausedAt = 0;
+            this.isPlaying = false; this.duration = 0; this.isWet = false;
+            
+            this.dryGain.gain.value = 1; this.wetGain.gain.value = 0;
+
+            // --- Setup Audio Analyzers for Metering ---
+            // Dry & Wet Buses for parallel analysis
+            this.dryBus = this.ctx.createGain();
+            this.wetBus = this.ctx.createGain();
+            this.dryGain.connect(this.masterGain); this.wetGain.connect(this.masterGain);
+            
+            const createStereoAnalyser = (source) => {
+                const al = this.ctx.createAnalyser();
+                const ar = this.ctx.createAnalyser();
+                al.fftSize = ar.fftSize = 2048;
+                al.smoothingTimeConstant = ar.smoothingTimeConstant = 0.1;
+                const sp = this.ctx.createChannelSplitter(2);
+                source.connect(sp);
+                sp.connect(al, 0);
+                sp.connect(ar, 1);
+                return { l: al, r: ar };
+            };
+
+            this.dryAnalysers = createStereoAnalyser(this.dryBus);
+            this.wetAnalysers = createStereoAnalyser(this.wetBus);
+
+            // LUFS Analyser (Monitor the actual mixed output)
+            this.lufsFilterHighShelf = this.ctx.createBiquadFilter();
+            this.lufsFilterHighShelf.type = 'highshelf';
+            this.lufsFilterHighShelf.frequency.value = 1500;
+            this.lufsFilterHighShelf.gain.value = 4.0;
+
+            this.lufsFilterHighPass = this.ctx.createBiquadFilter();
+            this.lufsFilterHighPass.type = 'highpass';
+            this.lufsFilterHighPass.frequency.value = 38;
+
+            this.lufsAnalyser = this.ctx.createAnalyser();
+            this.lufsAnalyser.fftSize = 4096;
+            this.lufsAnalyser.smoothingTimeConstant = 0.1;
+
+            this.masterGain.connect(this.lufsFilterHighShelf);
+            this.lufsFilterHighShelf.connect(this.lufsFilterHighPass);
+            this.lufsFilterHighPass.connect(this.lufsAnalyser);
+
+            this.lastTime = performance.now();
+        }
+
+        async load(dryUrl, wetUrl) {
+            const loadFile = async (url) => {
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                return await this.ctx.decodeAudioData(arrayBuffer);
+            };
+            [this.dryBuffer, this.wetBuffer] = await Promise.all([loadFile(dryUrl), loadFile(wetUrl)]);
+            this.duration = this.dryBuffer.duration;
+            return this.duration;
+        }
+
+        toggle() { if (this.isPlaying) this.pause(); else this.play(); }
+
+        play() {
+            if (this.isPlaying) return;
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            this.dryNode = this.ctx.createBufferSource(); this.wetNode = this.ctx.createBufferSource();
+            this.dryNode.buffer = this.dryBuffer; this.wetNode.buffer = this.wetBuffer;
+            this.dryNode.loop = this.wetNode.loop = true;
+            
+            // Parallel routing: one to gain (audio), one to bus (metering)
+            this.dryNode.connect(this.dryGain); this.dryNode.connect(this.dryBus);
+            this.wetNode.connect(this.wetGain); this.wetNode.connect(this.wetBus);
+            
+            const offset = this.pausedAt % this.duration;
+            this.dryNode.start(0, offset); this.wetNode.start(0, offset);
+            this.startTime = this.ctx.currentTime - offset;
+            this.isPlaying = true;
+            this.lastTime = performance.now();
+            updatePlayButton(true);
+            this.tick();
+        }
+
+        pause() {
+            if (!this.isPlaying) return;
+            this.dryNode.stop(); this.wetNode.stop();
+            this.pausedAt = this.ctx.currentTime - this.startTime;
+            this.isPlaying = false;
+            updatePlayButton(false);
+            
+            // Reset peak holds
+            peakHoldDryL = { val: METER_MIN_DB, timer: 0 };
+            peakHoldDryR = { val: METER_MIN_DB, timer: 0 };
+            peakHoldWetL = { val: METER_MIN_DB, timer: 0 };
+            peakHoldWetR = { val: METER_MIN_DB, timer: 0 };
+            prevLufsEnergy = 0;
+            drawMeter(0);
+        }
+
+        seek(percent) {
+            const wasPlaying = this.isPlaying;
+            if (wasPlaying) this.pause();
+            this.pausedAt = percent * this.duration;
+            if (wasPlaying) this.play();
+            this.updateWaves(this.pausedAt);
+        }
+
+        seekRelative(sec) {
+            const wasPlaying = this.isPlaying;
+            if (wasPlaying) this.pause();
+            this.pausedAt = Math.max(0, Math.min(this.duration, this.pausedAt + sec));
+            if (wasPlaying) this.play();
+            this.updateWaves(this.pausedAt);
+        }
+
+        setMode(isWet) {
+            this.isWet = isWet;
+            const now = this.ctx.currentTime;
+            this.dryGain.gain.setTargetAtTime(isWet ? 0 : 1, now, 0.02);
+            this.wetGain.gain.setTargetAtTime(isWet ? 1 : 0, now, 0.02);
+        }
+
+        setVolume(val) { this.masterGain.gain.value = val; }
+        
+        getCurrentTime() {
+            if (!this.isPlaying) return this.pausedAt;
+            return (this.ctx.currentTime - this.startTime) % this.duration;
+        }
+
+        tick() {
+            if (!this.isPlaying) return;
+            const now = performance.now();
+            const deltaTime = (now - this.lastTime) / 1000.0;
+            this.lastTime = now;
+
+            const current = this.getCurrentTime();
+            updateTimeDisplay(current, this.duration);
+            this.updateWaves(current);
+            drawMeter(deltaTime);
+            
+            requestAnimationFrame(() => this.tick());
+        }
+
+        updateWaves(time) { wsDry.setTime(time); wsWet.setTime(time); }
+    }
+
+    // --- Level Meter Logic ---
+    const canvas = document.getElementById('level-meter');
+    const meterCtx = canvas.getContext('2d');
+    
+    let peakHoldDryL = { val: METER_MIN_DB, timer: 0 };
+    let peakHoldDryR = { val: METER_MIN_DB, timer: 0 };
+    let peakHoldWetL = { val: METER_MIN_DB, timer: 0 };
+    let peakHoldWetR = { val: METER_MIN_DB, timer: 0 };
+    let prevLufsEnergy = 0;
+
+    function drawMeter(deltaTime) {
+        if (!audioEngine.isPlaying) {
+            meterCtx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        const getStats = (analyser) => {
+            const data = new Float32Array(analyser.fftSize);
+            analyser.getFloatTimeDomainData(data);
+            let sum = 0, peak = 0;
+            for (let i = 0; i < data.length; i++) {
+                const val = Math.abs(data[i]);
+                sum += val * val;
+                if (val > peak) peak = val;
+            }
+            const rms = Math.sqrt(sum / data.length);
+            return {
+                peakDb: 20 * Math.log10(peak || 1e-8),
+                rmsDb: 20 * Math.log10(rms || 1e-8)
+            };
+        };
+
+        const updatePeak = (stats, hold) => {
+            if (stats.peakDb >= hold.val) { hold.val = stats.peakDb; hold.timer = PEAK_HOLD_TIME_SEC; }
+            else { hold.timer -= deltaTime; if (hold.timer <= 0) hold.val -= 0.5; }
+        };
+
+        const statsDryL = getStats(audioEngine.dryAnalysers.l);
+        const statsDryR = getStats(audioEngine.dryAnalysers.r);
+        const statsWetL = getStats(audioEngine.wetAnalysers.l);
+        const statsWetR = getStats(audioEngine.wetAnalysers.r);
+
+        updatePeak(statsDryL, peakHoldDryL); updatePeak(statsDryR, peakHoldDryR);
+        updatePeak(statsWetL, peakHoldWetL); updatePeak(statsWetR, peakHoldWetR);
+
+        const lufsData = new Float32Array(audioEngine.lufsAnalyser.fftSize);
+        audioEngine.lufsAnalyser.getFloatTimeDomainData(lufsData);
+        let lufsSum = 0;
+        for (let i = 0; i < lufsData.length; i++) { lufsSum += lufsData[i] * lufsData[i]; }
+        const currentLufsEnergy = lufsSum / lufsData.length;
+        const lufsAlpha = 1.0 - Math.exp(-deltaTime / 0.4);
+        prevLufsEnergy = prevLufsEnergy + lufsAlpha * (currentLufsEnergy - prevLufsEnergy);
+        const lufsDb = (10 * Math.log10(prevLufsEnergy || 1e-10)) - 0.691;
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const LABEL_WIDTH = 45;
+        const barAreaWidth = width - LABEL_WIDTH;
+        meterCtx.clearRect(0, 0, width, height);
+
+        const mapDbToX = (db) => {
+            const clamped = Math.max(METER_MIN_DB, Math.min(METER_MAX_DB, db));
+            return LABEL_WIDTH + ((clamped - METER_MIN_DB) / (METER_MAX_DB - METER_MIN_DB)) * barAreaWidth;
+        };
+
+        const drawBar = (stats, hold, y, pColor, rColor, label) => {
+            const rmsX = mapDbToX(stats.rmsDb);
+            const peakX = mapDbToX(stats.peakDb);
+            const holdX = mapDbToX(hold.val);
+            
+            meterCtx.fillStyle = 'rgba(255,255,255,0.4)';
+            meterCtx.font = '700 9px Inter';
+            meterCtx.fillText(label, 8, y + 9);
+
+            meterCtx.fillStyle = rColor;
+            meterCtx.fillRect(LABEL_WIDTH, y, rmsX - LABEL_WIDTH, 12);
+            meterCtx.fillStyle = pColor;
+            meterCtx.fillRect(rmsX, y, Math.max(0, peakX - rmsX), 12);
+            meterCtx.fillStyle = '#ffffff';
+            meterCtx.fillRect(holdX, y, 2, 12);
+        };
+
+        const dryP = '#00e5ff', dryR = '#007a88';
+        const wetP = '#a259ff', wetR = '#5b328f';
+
+        drawBar(statsDryL, peakHoldDryL, 0,  dryP, dryR, 'DRY L');
+        drawBar(statsDryR, peakHoldDryR, 14, dryP, dryR, 'DRY R');
+        drawBar(statsWetL, peakHoldWetL, 34, wetP, wetR, 'WET L');
+        drawBar(statsWetR, peakHoldWetR, 48, wetP, wetR, 'WET R');
+
+        const lufsX = mapDbToX(lufsDb);
+        meterCtx.fillStyle = '#facc15';
+        meterCtx.beginPath();
+        meterCtx.moveTo(lufsX, 64);
+        meterCtx.lineTo(lufsX - 5, height);
+        meterCtx.lineTo(lufsX + 5, height);
+        meterCtx.fill();
+    }
+
+
+    // --- UI Logic ---
+    const audioEngine = new SyncAudioEngine();
+    let wsDry, wsWet;
+
+    async function init() {
+        const wsParams = {
+            height: 200, barWidth: 2, barGap: 3, barRadius: 4,
+            cursorColor: '#fff', interact: false, normalize: true,
+            remainsColor: 'rgba(255,255,255,0.05)'
+        };
+
+        wsDry = WaveSurfer.create({ ...wsParams, container: '#wave-dry', waveColor: '#1e293b', progressColor: '#00e5ff', url: 'vivop_original.opus' });
+        wsWet = WaveSurfer.create({ ...wsParams, container: '#wave-wet', waveColor: '#2e1065', progressColor: '#a259ff', url: 'vivop_mastered.opus' });
+
+        try {
+            await audioEngine.load('vivop_original.opus', 'vivop_mastered.opus');
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('loader').remove(), 500);
+            updateTimeDisplay(0, audioEngine.duration);
+        } catch (e) {
+            document.getElementById('load-status').innerText = "Error loading files. Check paths.";
+            document.getElementById('load-status').style.color = "#ef4444";
+        }
+    }
+
+    function updatePlayButton(playing) {
+        document.getElementById('play-btn').innerHTML = `<i data-lucide="${playing ? 'pause' : 'play'}"></i>`;
+        lucide.createIcons();
+    }
+
+    function updateTimeDisplay(cur, dur) {
+        const fmt = (s) => new Date(s * 1000).toISOString().substr(14, 5);
+        document.getElementById('time-display').innerText = `${fmt(cur)} / ${fmt(dur)}`;
+    }
+
+    document.getElementById('volume-range').addEventListener('input', (e) => audioEngine.setVolume(e.target.value));
+
+    document.getElementById('toggle').addEventListener('click', () => {
+        const isWet = !audioEngine.isWet;
+        audioEngine.setMode(isWet);
+        
+        const slider = document.getElementById('slider');
+        const lDry = document.getElementById('label-dry');
+        const lWet = document.getElementById('label-wet');
+        const overlay = document.getElementById('status-overlay');
+        
+        slider.style.transform = isWet ? 'translateX(100%)' : 'translateX(0)';
+        slider.style.background = isWet ? 'var(--accent-wet)' : 'var(--accent-dry)';
+        
+        if (isWet) { lDry.classList.remove('active'); lWet.classList.add('active'); }
+        else { lDry.classList.add('active'); lWet.classList.remove('active'); }
+        
+        document.getElementById('wave-dry').style.opacity = isWet ? '0' : '1';
+        document.getElementById('wave-wet').style.opacity = isWet ? '1' : '0';
+
+        overlay.innerText = isWet ? 'WET' : 'DRY';
+        overlay.style.color = isWet ? 'rgba(162, 89, 255, 0.08)' : 'rgba(0, 229, 255, 0.06)';
+        
+        // メーターの色を強制更新（一時停止中などの切り替え対応）
+        if(!audioEngine.isPlaying) drawMeter(0);
+    });
+
+    document.getElementById('waveform-container').addEventListener('click', (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        audioEngine.seek(x / rect.width);
+    });
+
+    window.onload = init;
+    lucide.createIcons();
+</script>
+
+</body>
+</html>
