@@ -226,23 +226,22 @@
             this.dryAnalysers = createStereoAnalyser(this.dryBus);
             this.wetAnalysers = createStereoAnalyser(this.wetBus);
 
-            // LUFS Analyser (Monitor the actual mixed output)
-            this.lufsFilterHighShelf = this.ctx.createBiquadFilter();
-            this.lufsFilterHighShelf.type = 'highshelf';
-            this.lufsFilterHighShelf.frequency.value = 1500;
-            this.lufsFilterHighShelf.gain.value = 4.0;
+            // LUFS Analysers for Dry and Wet
+            const createLufsChain = (source) => {
+                const shelf = this.ctx.createBiquadFilter();
+                shelf.type = 'highshelf'; shelf.frequency.value = 1500; shelf.gain.value = 4.0;
+                const hp = this.ctx.createBiquadFilter();
+                hp.type = 'highpass'; hp.frequency.value = 38;
+                const analyser = this.ctx.createAnalyser();
+                analyser.fftSize = 4096; analyser.smoothingTimeConstant = 0.1;
+                source.connect(shelf);
+                shelf.connect(hp);
+                hp.connect(analyser);
+                return analyser;
+            };
 
-            this.lufsFilterHighPass = this.ctx.createBiquadFilter();
-            this.lufsFilterHighPass.type = 'highpass';
-            this.lufsFilterHighPass.frequency.value = 38;
-
-            this.lufsAnalyser = this.ctx.createAnalyser();
-            this.lufsAnalyser.fftSize = 4096;
-            this.lufsAnalyser.smoothingTimeConstant = 0.1;
-
-            this.masterGain.connect(this.lufsFilterHighShelf);
-            this.lufsFilterHighShelf.connect(this.lufsFilterHighPass);
-            this.lufsFilterHighPass.connect(this.lufsAnalyser);
+            this.dryLufsAnalyser = createLufsChain(this.dryBus);
+            this.wetLufsAnalyser = createLufsChain(this.wetBus);
 
             this.lastTime = performance.now();
         }
@@ -292,7 +291,8 @@
             peakHoldDryR = { val: METER_MIN_DB, timer: 0 };
             peakHoldWetL = { val: METER_MIN_DB, timer: 0 };
             peakHoldWetR = { val: METER_MIN_DB, timer: 0 };
-            prevLufsEnergy = 0;
+            prevDryLufsEnergy = 0;
+            prevWetLufsEnergy = 0;
             drawMeter(0);
         }
 
@@ -351,7 +351,8 @@
     let peakHoldDryR = { val: METER_MIN_DB, timer: 0 };
     let peakHoldWetL = { val: METER_MIN_DB, timer: 0 };
     let peakHoldWetR = { val: METER_MIN_DB, timer: 0 };
-    let prevLufsEnergy = 0;
+    let prevDryLufsEnergy = 0;
+    let prevWetLufsEnergy = 0;
 
     function drawMeter(deltaTime) {
         if (!audioEngine.isPlaying) {
@@ -368,6 +369,7 @@
                 sum += val * val;
                 if (val > peak) peak = val;
             }
+            if (peak > 1.0) peak = 1.0; // Clamp peak to 0dBFS
             const rms = Math.sqrt(sum / data.length);
             return {
                 peakDb: 20 * Math.log10(peak || 1e-8),
@@ -380,6 +382,17 @@
             else { hold.timer -= deltaTime; if (hold.timer <= 0) hold.val -= 0.5; }
         };
 
+        const getLufsDb = (analyser, prevEnergy) => {
+            const data = new Float32Array(analyser.fftSize);
+            analyser.getFloatTimeDomainData(data);
+            let sum = 0;
+            for (let i = 0; i < data.length; i++) { sum += data[i] * data[i]; }
+            const energy = sum / data.length;
+            const alpha = 1.0 - Math.exp(-deltaTime / 0.4);
+            const newEnergy = prevEnergy + alpha * (energy - prevEnergy);
+            return { db: (10 * Math.log10(newEnergy || 1e-10)) - 0.691, energy: newEnergy };
+        };
+
         const statsDryL = getStats(audioEngine.dryAnalysers.l);
         const statsDryR = getStats(audioEngine.dryAnalysers.r);
         const statsWetL = getStats(audioEngine.wetAnalysers.l);
@@ -388,14 +401,10 @@
         updatePeak(statsDryL, peakHoldDryL); updatePeak(statsDryR, peakHoldDryR);
         updatePeak(statsWetL, peakHoldWetL); updatePeak(statsWetR, peakHoldWetR);
 
-        const lufsData = new Float32Array(audioEngine.lufsAnalyser.fftSize);
-        audioEngine.lufsAnalyser.getFloatTimeDomainData(lufsData);
-        let lufsSum = 0;
-        for (let i = 0; i < lufsData.length; i++) { lufsSum += lufsData[i] * lufsData[i]; }
-        const currentLufsEnergy = lufsSum / lufsData.length;
-        const lufsAlpha = 1.0 - Math.exp(-deltaTime / 0.4);
-        prevLufsEnergy = prevLufsEnergy + lufsAlpha * (currentLufsEnergy - prevLufsEnergy);
-        const lufsDb = (10 * Math.log10(prevLufsEnergy || 1e-10)) - 0.691;
+        const resDryLufs = getLufsDb(audioEngine.dryLufsAnalyser, prevDryLufsEnergy);
+        prevDryLufsEnergy = resDryLufs.energy;
+        const resWetLufs = getLufsDb(audioEngine.wetLufsAnalyser, prevWetLufsEnergy);
+        prevWetLufsEnergy = resWetLufs.energy;
 
         const width = canvas.width;
         const height = canvas.height;
@@ -408,38 +417,42 @@
             return LABEL_WIDTH + ((clamped - METER_MIN_DB) / (METER_MAX_DB - METER_MIN_DB)) * barAreaWidth;
         };
 
-        const drawBar = (stats, hold, y, pColor, rColor, label) => {
+        const drawBar = (db, y, h, color, label) => {
+            const x = mapDbToX(db);
+            meterCtx.fillStyle = 'rgba(255,255,255,0.4)';
+            meterCtx.font = '700 8px Inter';
+            meterCtx.fillText(label, 8, y + (h/2) + 3);
+            meterCtx.fillStyle = color;
+            meterCtx.fillRect(LABEL_WIDTH, y, x - LABEL_WIDTH, h);
+        };
+
+        const drawStereoBar = (stats, hold, y, h, pColor, rColor, label) => {
             const rmsX = mapDbToX(stats.rmsDb);
             const peakX = mapDbToX(stats.peakDb);
             const holdX = mapDbToX(hold.val);
-            
             meterCtx.fillStyle = 'rgba(255,255,255,0.4)';
-            meterCtx.font = '700 9px Inter';
-            meterCtx.fillText(label, 8, y + 9);
-
+            meterCtx.font = '700 8px Inter';
+            meterCtx.fillText(label, 8, y + (h/2) + 3);
             meterCtx.fillStyle = rColor;
-            meterCtx.fillRect(LABEL_WIDTH, y, rmsX - LABEL_WIDTH, 12);
+            meterCtx.fillRect(LABEL_WIDTH, y, rmsX - LABEL_WIDTH, h);
             meterCtx.fillStyle = pColor;
-            meterCtx.fillRect(rmsX, y, Math.max(0, peakX - rmsX), 12);
+            meterCtx.fillRect(rmsX, y, Math.max(0, peakX - rmsX), h);
             meterCtx.fillStyle = '#ffffff';
-            meterCtx.fillRect(holdX, y, 2, 12);
+            meterCtx.fillRect(holdX, y, 2, h);
         };
 
         const dryP = '#00e5ff', dryR = '#007a88';
         const wetP = '#a259ff', wetR = '#5b328f';
 
-        drawBar(statsDryL, peakHoldDryL, 0,  dryP, dryR, 'DRY L');
-        drawBar(statsDryR, peakHoldDryR, 14, dryP, dryR, 'DRY R');
-        drawBar(statsWetL, peakHoldWetL, 34, wetP, wetR, 'WET L');
-        drawBar(statsWetR, peakHoldWetR, 48, wetP, wetR, 'WET R');
-
-        const lufsX = mapDbToX(lufsDb);
-        meterCtx.fillStyle = '#facc15';
-        meterCtx.beginPath();
-        meterCtx.moveTo(lufsX, 64);
-        meterCtx.lineTo(lufsX - 5, height);
-        meterCtx.lineTo(lufsX + 5, height);
-        meterCtx.fill();
+        // Layout (Total 80px): 
+        // LUFS(8) + sg(2) + L(12) + sg(2) + R(12) + LG(8) + L(12) + sg(2) + R(12) + sg(2) + LUFS(8) = 80px
+        drawBar(resDryLufs.db, 0, 8, dryR, 'LUFS');
+        drawStereoBar(statsDryL, peakHoldDryL, 10, 12, dryP, dryR, 'DRY L');
+        drawStereoBar(statsDryR, peakHoldDryR, 24, 12, dryP, dryR, 'DRY R');
+        
+        drawStereoBar(statsWetL, peakHoldWetL, 44, 12, wetP, wetR, 'WET L');
+        drawStereoBar(statsWetR, peakHoldWetR, 58, 12, wetP, wetR, 'WET R');
+        drawBar(resWetLufs.db, 72, 8, wetR, 'LUFS');
     }
 
 
