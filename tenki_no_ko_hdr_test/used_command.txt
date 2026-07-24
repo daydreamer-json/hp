@@ -1,0 +1,11 @@
+ffmpeg -ss 00:03:14.027 -i weathering_with_you_4k_hdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt2020 -color_trc smpte2084 -colorspace bt2020nc -color_range tv tenki_000314027_4k_hdr.avif
+ffmpeg -ss 00:39:42.000 -i weathering_with_you_4k_hdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt2020 -color_trc smpte2084 -colorspace bt2020nc -color_range tv tenki_003942000_4k_hdr.avif
+ffmpeg -ss 00:40:09.490 -i weathering_with_you_4k_hdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt2020 -color_trc smpte2084 -colorspace bt2020nc -color_range tv tenki_004009490_4k_hdr.avif
+ffmpeg -ss 01:34:53.605 -i weathering_with_you_4k_hdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt2020 -color_trc smpte2084 -colorspace bt2020nc -color_range tv tenki_013453605_4k_hdr.avif
+ffmpeg -ss 01:45:09.303 -i weathering_with_you_4k_hdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt2020 -color_trc smpte2084 -colorspace bt2020nc -color_range tv tenki_014509303_4k_hdr.avif
+
+ffmpeg -ss 00:03:14.027 -i weathering_with_you_sdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv tenki_000314027_sdr.avif
+ffmpeg -ss 00:39:42.000 -i weathering_with_you_sdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv tenki_003942000_sdr.avif
+ffmpeg -ss 00:40:09.490 -i weathering_with_you_sdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv tenki_004009490_sdr.avif
+ffmpeg -ss 01:34:53.605 -i weathering_with_you_sdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv tenki_013453605_sdr.avif
+ffmpeg -ss 01:45:09.303 -i weathering_with_you_sdr.mkv -frames:v 1 -map 0:v:0 -c:v libaom-av1 -crf 0 -b:v 0 -pix_fmt yuv420p10le -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv tenki_014509303_sdr.avif

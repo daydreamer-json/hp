@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenki No Ko HDR/SDR Compare</title>
+<style>
+  :root { color-scheme: dark; }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: #111;
+    color: #eee;
+    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans JP", sans-serif;
+  }
+
+  header {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 16px 0;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  select,
+  button {
+    background: #1f1f1f;
+    color: #eee;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  select:hover,
+  button:hover {
+    border-color: #777;
+  }
+
+  #status {
+    margin-left: auto;
+    color: #aaa;
+    font-size: 13px;
+  }
+
+  main {
+    padding: 14px 16px 32px;
+  }
+
+  .compare {
+    --pos: 50%;
+    --w: 16;
+    --h: 9;
+
+    position: relative;
+    width: min(1400px, 100%, calc(78vh * var(--w) / var(--h)));
+    aspect-ratio: var(--w) / var(--h);
+    margin: 0 auto;
+    background: #000;
+    border: 1px solid #333;
+    border-radius: 14px;
+    overflow: hidden;
+
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: ew-resize;
+    outline: none;
+  }
+
+  .compare:focus-visible {
+    outline: 3px solid #58a6ff;
+    outline-offset: 2px;
+  }
+
+  .compare img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  /* 下地に HDR、上から SDR を左側だけクリップして被せる */
+  .img-hdr {
+    z-index: 1;
+  }
+
+  .img-sdr {
+    z-index: 2;
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+  }
+
+  .divider {
+    z-index: 3;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+  }
+
+  .handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #111;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  }
+
+  .label {
+    z-index: 4;
+    position: absolute;
+    top: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+  }
+
+  .label-left {
+    left: 12px;
+  }
+
+  .label-right {
+    right: 12px;
+  }
+
+  .compare.loading::after {
+    content: "Loading ...";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-size: 14px;
+    z-index: 5;
+  }
+
+  .thumbs {
+    list-style: none;
+    padding: 0;
+    margin: 14px auto 0;
+    max-width: 1400px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+
+  .thumb {
+    width: 100%;
+    padding: 0;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .thumb:hover {
+    border-color: #777;
+  }
+
+  .thumb[aria-current="true"] {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.35);
+  }
+
+  .thumb img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #000;
+  }
+
+  .thumb span {
+    display: block;
+    padding: 7px 8px;
+    font-size: 12px;
+    color: #ccc;
+    text-align: center;
+  }
+
+  @media (max-width: 700px) {
+    #status {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="controls">
+    <button id="prevBtn" type="button">← Prev</button>
+    <button id="nextBtn" type="button">Next →</button>
+
+    <select id="imageSelect" aria-label="Select compare preset"></select>
+
+    <button id="resetBtn" type="button">Back to Center</button>
+
+    <div id="status" aria-live="polite">Preparing ...</div>
+  </div>
+</header>
+
+<main>
+  <div
+    id="compare"
+    class="compare"
+    tabindex="0"
+    role="slider"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow="50"
+    aria-label="Slider"
+  >
+    <img id="hdrImg" class="img-hdr" alt="" decoding="async" draggable="false">
+    <img id="sdrImg" class="img-sdr" alt="" decoding="async" draggable="false">
+
+    <div class="divider" aria-hidden="true">
+      <div class="handle">⇔</div>
+    </div>
+
+    <div class="label label-left" aria-hidden="true">SDR</div>
+    <div class="label label-right" aria-hidden="true">HDR</div>
+  </div>
+
+  <ul id="thumbs" class="thumbs"></ul>
+</main>
+
+<script>
+  const IMAGE_IDS = [
+    "000314027",
+    "003942000",
+    "004009490",
+    "013453605",
+    "014509303",
+  ];
+
+  const IMAGES = IMAGE_IDS.map((id) => ({
+    id,
+    label: `tenki_${id}`,
+    sdr: `./assets/img/tenki_${id}_sdr.avif`,
+    hdr: `./assets/img/tenki_${id}_4k_hdr.avif`,
+  }));
+
+  const compare = document.getElementById("compare");
+  const sdrImg = document.getElementById("sdrImg");
+  const hdrImg = document.getElementById("hdrImg");
+  const select = document.getElementById("imageSelect");
+  const status = document.getElementById("status");
+  const thumbs = document.getElementById("thumbs");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  let currentIndex = 0;
+  let sliderPos = 50;
+  let dragging = false;
+  let loadToken = 0;
+
+  function setSlider(percent) {
+    sliderPos = Math.min(100, Math.max(0, percent));
+    compare.style.setProperty("--pos", `${sliderPos}%`);
+    compare.setAttribute("aria-valuenow", String(Math.round(sliderPos)));
+    compare.setAttribute("aria-valuetext", `${Math.round(sliderPos)}%`);
+  }
+
+  function clientXToPercent(clientX) {
+    const rect = compare.getBoundingClientRect();
+    if (rect.width === 0) return sliderPos;
+    return ((clientX - rect.left) / rect.width) * 100;
+  }
+
+  compare.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    compare.focus({ preventScroll: true });
+
+    if (compare.setPointerCapture) {
+      compare.setPointerCapture(e.pointerId);
+    }
+
+    setSlider(clientXToPercent(e.clientX));
+  });
+
+  compare.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    setSlider(clientXToPercent(e.clientX));
+  });
+
+  const stopDragging = () => {
+    dragging = false;
+  };
+
+  compare.addEventListener("pointerup", stopDragging);
+  compare.addEventListener("pointercancel", stopDragging);
+  compare.addEventListener("lostpointercapture", stopDragging);
+
+  compare.addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 10 : 2;
+
+    if (e.key === "ArrowLeft") {
+      setSlider(sliderPos - step);
+      e.preventDefault();
+    } else if (e.key === "ArrowRight") {
+      setSlider(sliderPos + step);
+      e.preventDefault();
+    } else if (e.key === "Home") {
+      setSlider(0);
+      e.preventDefault();
+    } else if (e.key === "End") {
+      setSlider(100);
+      e.preventDefault();
+    }
+  });
+
+  compare.addEventListener("dblclick", () => setSlider(50));
+  resetBtn.addEventListener("click", () => setSlider(50));
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Image load failed: ${src}`));
+      img.src = src;
+    });
+  }
+
+  async function showImage(index) {
+    const token = ++loadToken;
+
+    currentIndex = ((index % IMAGES.length) + IMAGES.length) % IMAGES.length;
+    const item = IMAGES[currentIndex];
+
+    select.value = String(currentIndex);
+    updateThumbState();
+
+    compare.classList.add("loading");
+    status.textContent = `Loading ${item.label} ...`;
+
+    try {
+      const [sdr, hdr] = await Promise.all([
+        loadImage(item.sdr),
+        loadImage(item.hdr),
+      ]);
+
+      if (token !== loadToken) return;
+
+      sdrImg.src = item.sdr;
+      hdrImg.src = item.hdr;
+      sdrImg.alt = `${item.label} SDR`;
+      hdrImg.alt = `${item.label} HDR`;
+
+      const w = sdr.naturalWidth || hdr.naturalWidth;
+      const h = sdr.naturalHeight || hdr.naturalHeight;
+
+      if (w && h) {
+        compare.style.setProperty("--w", String(w));
+        compare.style.setProperty("--h", String(h));
+      }
+
+      status.textContent =
+        `${item.label} | SDR ${sdr.naturalWidth}×${sdr.naturalHeight} / ` +
+        `HDR ${hdr.naturalWidth}×${hdr.naturalHeight}`;
+    } catch (err) {
+      if (token !== loadToken) return;
+
+      console.error(err);
+      status.textContent = err.message;
+    } finally {
+      if (token === loadToken) {
+        compare.classList.remove("loading");
+      }
+    }
+  }
+
+  function updateThumbState() {
+    [...thumbs.children].forEach((li, i) => {
+      const btn = li.querySelector("button.thumb");
+      if (btn) {
+        btn.setAttribute("aria-current", String(i === currentIndex));
+      }
+    });
+  }
+
+  // セレクトボックス
+  IMAGES.forEach((item, i) => {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = item.label;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener("change", () => {
+    showImage(Number(select.value));
+  });
+
+  prevBtn.addEventListener("click", () => showImage(currentIndex - 1));
+  nextBtn.addEventListener("click", () => showImage(currentIndex + 1));
+
+  // サムネイル
+  IMAGES.forEach((item, i) => {
+    const li = document.createElement("li");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "thumb";
+    btn.setAttribute("aria-current", "false");
+
+    const img = document.createElement("img");
+    img.src = item.sdr;
+    img.alt = `${item.label} thumb`;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.draggable = false;
+
+    const span = document.createElement("span");
+    span.textContent = item.id;
+
+    btn.append(img, span);
+    btn.addEventListener("click", () => showImage(i));
+
+    li.appendChild(btn);
+    thumbs.appendChild(li);
+  });
+
+  // 初期表示
+  setSlider(50);
+  showImage(0);
+</script>
+
+</body>
+</html>
